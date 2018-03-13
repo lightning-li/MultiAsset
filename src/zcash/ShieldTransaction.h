@@ -22,7 +22,9 @@ public:
 
     // 每一个 JSDescription 都关联着一个由历史上出现过的所有 note commitment 组成的 Merkle 树根哈希值 
     uint256 anchor;
-
+    // asset id
+    uint256 id;
+    
     std::array<uint256, ZC_NUM_JS_INPUTS> nullifiers;
     std::array<uint256, ZC_NUM_JS_OUTPUTS> commitments;
 
@@ -47,6 +49,7 @@ public:
                 const std::array<libzcash::JSOutput, ZC_NUM_JS_OUTPUTS>& outputs,
                 int64_t vpub_old,
                 int64_t vpub_new,
+                const uint256& id,
                 bool computeProof = true,
                 uint256 *esk = nullptr    
                 );
