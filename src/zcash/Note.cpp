@@ -13,6 +13,7 @@ Note::Note() {
     a_pk = random_uint256();
     rho = random_uint256();
     r = random_uint256();
+    id = random_uint256();
     value = 0;
 }
 
@@ -28,7 +29,8 @@ uint256 Note::cm() const {
     hasher.Write(&value_vec[0], value_vec.size());
     hasher.Write(rho.begin(), 32);
     hasher.Write(r.begin(), 32);
-
+    // add asset id
+    hasher.Write(id.begin(), 32);
     uint256 result;
     hasher.Finalize(result.begin());
 
@@ -46,11 +48,12 @@ NotePlaintext::NotePlaintext(
     value = note.value;
     rho = note.rho;
     r = note.r;
+    id = note.id;
 }
 
 Note NotePlaintext::note(const PaymentAddress& addr) const
 {
-    return Note(addr.a_pk, value, rho, r);
+    return Note(addr.a_pk, value, rho, r, id);
 }
 
 NotePlaintext NotePlaintext::decrypt(const ZCNoteDecryption& decryptor,

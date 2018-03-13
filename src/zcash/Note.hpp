@@ -16,9 +16,10 @@ public:
     uint64_t value;
     uint256 rho;
     uint256 r;
+    uint256 id;     // asset id
 
-    Note(uint256 a_pk, uint64_t value, uint256 rho, uint256 r)
-        : a_pk(a_pk), value(value), rho(rho), r(r) {}
+    Note(uint256 a_pk, uint64_t value, uint256 rho, uint256 r, uint256 id)
+        : a_pk(a_pk), value(value), rho(rho), r(r), id(id) {}
 
     Note();
 
@@ -31,6 +32,8 @@ public:
     uint64_t value = 0;
     uint256 rho;
     uint256 r;
+    // add asset id
+    uint256 id;
     std::array<unsigned char, ZC_MEMO_SIZE> memo;
 
     NotePlaintext() {}
@@ -53,6 +56,7 @@ public:
         READWRITE(value);
         READWRITE(rho);
         READWRITE(r);
+        READWRITE(id);
         READWRITE(memo);
     }
 

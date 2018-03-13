@@ -25,6 +25,174 @@ bool generate_vk_pk(string pkFile, string vkFile, string r1csFile)
     return true;
 }
 
+bool test_multi_asset_joinsplit(ZCJoinSplit* js) {
+    
+    // 创建验证上下文环境
+    auto verifier = libzcash::ProofVerifier::Strict();
+    
+    // 伪造接收者信息
+    SpendingKey recipient_key = SpendingKey::random();
+    PaymentAddress recipient_addr = recipient_key.address();
+
+    // 创建匿名资产承诺树
+    ZCIncrementalMerkleTree tree;
+
+    // 创建 JoinSplit 描述
+    uint256 ephemeralKey;  // 创建临时公钥
+    uint256 randomSeed;
+    uint64_t vpub_old = 10;
+    uint64_t vpub_new = 0;
+    uint256 id = "0x0000000000000000000000000000000000000000000000000000000000000001";
+    uint256 pubKeyHash = random_uint256();
+    std::array<uint256, 2> macs;
+    std::array<uint256, 2> nullifiers;
+    std::array<uint256, 2> commitments;
+    uint256 rt = tree.root();
+    std::array<ZCNoteEncryption::Ciphertext, 2> ciphertexts;
+    ZCProof proof;
+    struct timeval start, end;
+    {
+        std::array<JSInput, 2> inputs = {
+            JSInput(id), // dummy input
+            JSInput(id) // dummy input
+        };
+
+        std::array<JSOutput, 2> outputs = {
+            JSOutput(recipient_addr, 10, id),
+            JSOutput(id) // dummy output
+        };
+
+        std::array<Note, 2> output_notes;
+        gettimeofday(&start, NULL);
+        // Perform the proof
+        proof = js->prove(
+            inputs,
+            outputs,
+            output_notes,
+            ciphertexts,
+            ephemeralKey,
+            pubKeyHash,
+            randomSeed,
+            macs,
+            nullifiers,
+            commitments,
+            vpub_old,
+            vpub_new,
+            rt,
+            id
+        );
+        gettimeofday(&end, NULL);
+        std::cout << "---------------generate proof needs " << (1000000 * (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec)) << " microseconds" << std::endl;
+
+    }
+
+    // Verify the transaction:
+    if (js->verify(
+        proof,
+        verifier,
+        pubKeyHash,
+        randomSeed,
+        macs,
+        nullifiers,
+        commitments,
+        vpub_old,
+        vpub_new,
+        rt,
+        id
+    )) {
+        std::cout << "verify passed....." << std::endl;
+    } else {
+        return false;
+    }
+
+    // Recipient should decrypt
+    // Now the recipient should spend the money again
+    auto h_sig = js->h_sig(randomSeed, nullifiers, pubKeyHash);
+    ZCNoteDecryption decryptor(recipient_key.viewing_key());
+
+    auto note_pt = NotePlaintext::decrypt(
+        decryptor,
+        ciphertexts[0],
+        ephemeralKey,
+        h_sig,
+        0
+    );
+
+    auto decrypted_note = note_pt.note(recipient_addr);
+
+    if (decrypted_note.value != 10) {
+        cout << "error...." << endl;
+        return false;
+    }
+    /*
+    // Insert the commitments from the last tx into the tree
+    tree.append(commitments[0]);
+    auto witness_recipient = tree.witness();
+    tree.append(commitments[1]);
+    witness_recipient.append(commitments[1]);
+    vpub_old = 0;
+    vpub_new = 1;
+    rt = tree.root();
+    pubKeyHash = random_uint256();
+
+    {
+        std::array<JSInput, 2> inputs = {
+            JSInput(), // dummy input
+            JSInput(witness_recipient, decrypted_note, recipient_key)
+        };
+
+        SpendingKey second_recipient = SpendingKey::random();
+        PaymentAddress second_addr = second_recipient.address();
+
+        std::array<JSOutput, 2> outputs = {
+            JSOutput(second_addr, 9),
+            JSOutput() // dummy output
+        };
+
+        std::array<Note, 2> output_notes;
+        gettimeofday(&start, NULL);
+        // Perform the proof
+        proof = js->prove(
+            inputs,
+            outputs,
+            output_notes,
+            ciphertexts,
+            ephemeralKey,
+            pubKeyHash,
+            randomSeed,
+            macs,
+            nullifiers,
+            commitments,
+            vpub_old,
+            vpub_new,
+            rt
+        );
+        gettimeofday(&end, NULL);
+        std::cout << "generate zero knowledge needs " << (1000000 * (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec)) << " microseconds" << std::endl;
+    }
+
+    // Verify the transaction:
+    if (js->verify(
+        proof,
+        verifier,
+        pubKeyHash,
+        randomSeed,
+        macs,
+        nullifiers,
+        commitments,
+        vpub_old,
+        vpub_new,
+        rt
+    )) {
+        cout << "Congratulations!! SUCCESS" << endl;
+    } else {
+        return false;
+    }
+    gettimeofday(&start, NULL);
+    std::cout << "verify zero knowledge needs " << (1000000 * (start.tv_sec - end.tv_sec) + (start.tv_usec - end.tv_usec)) << " microseconds" << std::endl;
+    */
+}
+/*
 bool test_joinsplit(ZCJoinSplit* js) {
     // Create verification context.
     auto verifier = libzcash::ProofVerifier::Strict();
@@ -188,6 +356,7 @@ bool test_joinsplit(ZCJoinSplit* js) {
     std::cout << "verify zero knowledge needs " << (1000000 * (start.tv_sec - end.tv_sec) + (start.tv_usec - end.tv_usec)) << " microseconds" << std::endl;
 
 }
+*/
 
 int main(int argc, char **argv)
 {

@@ -22,7 +22,7 @@ public:
     Note note;
     SpendingKey key;
 
-    JSInput();
+    JSInput(uint256 id);
     JSInput(ZCIncrementalWitness witness,
             Note note,
             SpendingKey key) : witness(witness), note(note), key(key) { }
@@ -37,9 +37,10 @@ public:
     PaymentAddress addr;
     uint64_t value;
     std::array<unsigned char, ZC_MEMO_SIZE> memo = {{0xF6}};  // 0xF6 is invalid UTF8 as per spec, rest of array is 0x00
+    uint256 id;
 
-    JSOutput();
-    JSOutput(PaymentAddress addr, uint64_t value) : addr(addr), value(value) { }
+    JSOutput(uint256 id);
+    JSOutput(PaymentAddress addr, uint64_t value, uint256 id) : addr(addr), value(value), id(id) { }
 
     Note note(const uint252& phi, const uint256& r, size_t i, const uint256& h_sig) const;
 };
@@ -74,6 +75,7 @@ public:
         uint64_t vpub_old,
         uint64_t vpub_new,
         const uint256& rt,
+        const uint256& id,
         bool computeProof = true,
         // For paymentdisclosure, we need to retrieve the esk.
         // Reference as non-const parameter with default value leads to compile error.
@@ -91,7 +93,8 @@ public:
         const std::array<uint256, NumOutputs>& commitments,
         uint64_t vpub_old,
         uint64_t vpub_new,
-        const uint256& rt
+        const uint256& rt,
+        const uint256& id
     ) = 0;
 
 protected:

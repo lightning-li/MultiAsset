@@ -21,6 +21,10 @@ private:
     std::array<std::shared_ptr<digest_variable<FieldT>>, NumOutputs> zk_output_commitments;
     pb_variable_array<FieldT> zk_vpub_old;
     pb_variable_array<FieldT> zk_vpub_new;
+    std::shared_ptr<digest_variable<FieldT>> zk_id; // asset id
+    
+    std::array<std::shared_ptr<bit_vector_copy_gadget<FieldT> >, NumInputs> check_input_ids; // 检查 id 是否与 input_note 中的 id 相等
+    std::array<std::shared_ptr<bit_vector_copy_gadget<FieldT> >, NUmOutputs> check_output_ids; //检查 id 是否与 output_note 中的 id 相等
 
     // Aux inputs
     pb_variable<FieldT> ZERO;
@@ -68,6 +72,7 @@ public:
 
             alloc_uint64(zk_unpacked_inputs, zk_vpub_old);
             alloc_uint64(zk_unpacked_inputs, zk_vpub_new);
+            alloc_uint256(zk_unpacked_inputs, zk_id);
 
             assert(zk_unpacked_inputs.size() == verifying_input_bit_size());
 
@@ -114,6 +119,9 @@ public:
                 i ? true : false,
                 zk_input_macs[i]
             ));
+
+            // the id of JoinSplit Description euqal id of input_note
+            check_input_ids[i].reset(new bit_vector_copy_gadget<FieldT>(pb, zk_input_notes[i].id->bits, zk_id->bits, 1, FieldT::capacity(), "check_input_id"));
         }
 
         for (size_t i = 0; i < NumOutputs; i++) {
@@ -125,7 +133,9 @@ public:
                 i ? true : false,
                 zk_output_commitments[i]
             ));
+            check_output_ids[i].reset(new bit_vector_copy_gadget<FieldT>(pb, zk_output_notes[i].id->bits, zk_id->bits, 1, FieldT::capacity(), " check_output_id"));
         }
+        
     }
 
     void generate_r1cs_constraints() {
@@ -145,11 +155,15 @@ public:
 
             // Authenticate h_sig with a_sk
             zk_mac_authentication[i]->generate_r1cs_constraints();
+
+            check_input_ids[i]->generate_r1cs_constraints(true, true);
         }
 
         for (size_t i = 0; i < NumOutputs; i++) {
             // Constrain the JoinSplit output constraints.
             zk_output_notes[i]->generate_r1cs_constraints();
+
+            check_output_ids[i]->generate_r1cs_constraints(true, true);
         }
 
         // Value balance
@@ -186,6 +200,13 @@ public:
                 packed_addition(zk_total_uint64)
             ));
         }
+        // id in JoinSplit Description must equal id of input_note and output_note
+        {
+            this->pb.add_r1cs_constraint(r1cs_constraint<FieldT>(
+                1,
+
+            ))
+        }
     }
 
     void generate_r1cs_witness(
@@ -195,7 +216,8 @@ public:
         const std::array<JSInput, NumInputs>& inputs,
         const std::array<Note, NumOutputs>& outputs,
         uint64_t vpub_old,
-        uint64_t vpub_new
+        uint64_t vpub_new,
+        const uint256& id
     ) {
         // Witness `zero`
         this->pb.val(ZERO) = FieldT::zero();
@@ -218,6 +240,12 @@ public:
         zk_vpub_new.fill_with_bits(
             this->pb,
             uint64_to_bool_vector(vpub_new)
+        );
+
+        // witness zk_id
+        zk_id->bits.fill_with_bits(
+            this->pb,
+            uint256_to_bool_vector(id)
         );
 
         {
@@ -256,12 +284,22 @@ public:
 
             // Witness macs
             zk_mac_authentication[i]->generate_r1cs_witness();
+
+            // witness id
+            check_input_ids[i]->generate_r1cs_witness();
         }
 
         for (size_t i = 0; i < NumOutputs; i++) {
             // Witness the output information.
             zk_output_notes[i]->generate_r1cs_witness(outputs[i]);
+            check_output_ids[i]->generate_r1cs_witness();
         }
+
+        // [SANITY CHECK]
+        zk_id->bits.fill_with_bits(
+            this->pb,
+            uint256_to_bool_vector(id)
+        );
 
         // [SANITY CHECK] Ensure that the intended root
         // was witnessed by the inputs, even if the read
@@ -291,7 +329,8 @@ public:
         const std::array<uint256, NumInputs>& nullifiers,
         const std::array<uint256, NumOutputs>& commitments,
         uint64_t vpub_old,
-        uint64_t vpub_new
+        uint64_t vpub_new,
+        const uint256& id
     ) {
         std::vector<bool> verify_inputs;
 
@@ -310,12 +349,16 @@ public:
         insert_uint64(verify_inputs, vpub_old);
         insert_uint64(verify_inputs, vpub_new);
 
+        insert_uint256(verify_inputs, id);
+        
         assert(verify_inputs.size() == verifying_input_bit_size());
         auto verify_field_elements = pack_bit_vector_into_field_element_vector<FieldT>(verify_inputs);
         assert(verify_field_elements.size() == verifying_field_element_size());
         return verify_field_elements;
     }
 
+    // primary input size
+    // add asset id
     static size_t verifying_input_bit_size() {
         size_t acc = 0;
 
@@ -330,7 +373,7 @@ public:
         }
         acc += 64; // vpub_old
         acc += 64; // vpub_new
-
+        acc += 256; // asset id
         return acc;
     }
 

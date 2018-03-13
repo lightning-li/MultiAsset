@@ -109,7 +109,8 @@ public:
         const std::array<uint256, NumOutputs>& commitments,
         uint64_t vpub_old,
         uint64_t vpub_new,
-        const uint256& rt
+        const uint256& rt,
+        const uint256& id
     ) {
         try {
             auto r1cs_proof = proof.to_libsnark_proof<r1cs_ppzksnark_proof<ppzksnark_ppT>>();
@@ -123,7 +124,8 @@ public:
                 nullifiers,
                 commitments,
                 vpub_old,
-                vpub_new
+                vpub_new,
+                id
             );
 
             return verifier.check(
@@ -152,8 +154,9 @@ public:
         uint64_t vpub_old,     //该匿名交易透明金额的来源
         uint64_t vpub_new,     //该匿名交易透明金额的产生/去处
         const uint256& rt,     //该匿名交易所花费匿名 note 所在的树根哈希值
+        const uint256& id,     //资产 id
         bool computeProof,     //标志位：是否生成零知识证明证据
-        uint256 *out_esk // Payment disclosure 
+        uint256 *out_esk       // Payment disclosure
     ) {
         struct timeval start, end;
         gettimeofday(&start, NULL);
@@ -171,6 +174,11 @@ public:
         for (size_t i = 0; i < NumInputs; i++) {
             // Sanity checks of input
             {
+                // 检查 id 是否与 JoinSplit 描述中的 id 相等
+                if (inputs[i].note.id != id) {
+                    throw std::invalid_argument("input_note id not equal id of JoinSplit description");
+                }
+                
                 // If note has nonzero value
                 if (inputs[i].note.value != 0) {
                     // The witness root must equal the input root.
@@ -217,7 +225,11 @@ public:
         // Compute notes for outputs
         for (size_t i = 0; i < NumOutputs; i++) {
             // Sanity checks of output
-            {
+            {   
+                if (output[i].id != id) {
+                    throw std::invalid_argument("output_note id not equal id of joinsplit description");
+                }
+
                 if (outputs[i].value > MAX_MONEY) {
                     throw std::invalid_argument("nonsensical output value");
                 }
@@ -286,7 +298,8 @@ public:
                 inputs,
                 out_notes,
                 vpub_old,
-                vpub_new
+                vpub_new,
+                id
             );
         }
 
@@ -372,17 +385,17 @@ uint256 JoinSplit<NumInputs, NumOutputs>::h_sig(
 Note JSOutput::note(const uint252& phi, const uint256& r, size_t i, const uint256& h_sig) const {
     uint256 rho = PRF_rho(phi, i, h_sig);
 
-    return Note(addr.a_pk, value, rho, r);
+    return Note(addr.a_pk, value, rho, r, id);
 }
 
-JSOutput::JSOutput() : addr(uint256(), uint256()), value(0) {
+JSOutput::JSOutput(uint256 id) : addr(uint256(), uint256()), value(0), id(id) {
     SpendingKey a_sk = SpendingKey::random();
     addr = a_sk.address();
 }
 
-JSInput::JSInput() : witness(ZCIncrementalMerkleTree().witness()),
+JSInput::JSInput(uint256 id) : witness(ZCIncrementalMerkleTree().witness()),
                      key(SpendingKey::random()) {
-    note = Note(key.address().a_pk, 0, random_uint256(), random_uint256());
+    note = Note(key.address().a_pk, 0, random_uint256(), random_uint256(), id);
     ZCIncrementalMerkleTree dummy_tree;
     dummy_tree.append(note.cm());
     witness = dummy_tree.witness();
