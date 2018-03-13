@@ -11,6 +11,7 @@
 #include <array>
 #include <iostream>
 #include <sys/time.h>
+#include <stdio.h>
 
 using namespace libzcash;
 using namespace std;
@@ -375,7 +376,7 @@ int main(int argc, char **argv)
 
     File* f;
     string vk_path = string(param_path + "/MultiAsset-verifying.key");
-    string pk_path = string(param_path + "/MultiAsset-proving.key")
+    string pk_path = string(param_path + "/MultiAsset-proving.key");
     string r1cs_path = string(param_path + "/MultiAsset-r1cs");
 
     f = fopen(vk_path.c_str(), "r");
@@ -409,6 +410,6 @@ int main(int argc, char **argv)
                              0);
     }
     */
-    test_joinsplit(p);
+    test_multi_asset_joinsplit(p);
     delete p; // not that it matters
 }
