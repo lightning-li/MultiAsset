@@ -28,6 +28,7 @@ private:
 
     // Aux inputs
     pb_variable<FieldT> ZERO;
+    pb_variable<FieldT> check_id_flag;
     std::shared_ptr<digest_variable<FieldT>> zk_phi;
     pb_variable_array<FieldT> zk_total_uint64;
 
@@ -99,6 +100,8 @@ public:
 
         zk_total_uint64.allocate(pb, 64);
 
+        check_id_flag.allocate(pb, "check_id_flag");
+
         for (size_t i = 0; i < NumInputs; i++) {
             // Input note gadget for commitments, macs, nullifiers,
             // and spend authority.
@@ -121,7 +124,7 @@ public:
             ));
 
             // the id of JoinSplit Description euqal id of input_note
-            check_input_ids[i].reset(new bit_vector_copy_gadget<FieldT>(pb, zk_input_notes[i]->id->bits, zk_id->bits, 1, FieldT::capacity(), "check_input_id"));
+            check_input_ids[i].reset(new bit_vector_copy_gadget<FieldT>(pb, zk_input_notes[i]->id->bits, zk_id->bits, check_id_flag, FieldT::capacity(), "check_input_id"));
         }
 
         for (size_t i = 0; i < NumOutputs; i++) {
@@ -133,7 +136,7 @@ public:
                 i ? true : false,
                 zk_output_commitments[i]
             ));
-            check_output_ids[i].reset(new bit_vector_copy_gadget<FieldT>(pb, zk_output_notes[i]->id->bits, zk_id->bits, 1, FieldT::capacity(), " check_output_id"));
+            check_output_ids[i].reset(new bit_vector_copy_gadget<FieldT>(pb, zk_output_notes[i]->id->bits, zk_id->bits, check_id_flag, FieldT::capacity(), " check_output_id"));
         }
         
     }
@@ -145,6 +148,9 @@ public:
 
         // Constrain `ZERO`
         generate_r1cs_equals_const_constraint<FieldT>(this->pb, ZERO, FieldT::zero(), "ZERO");
+
+        // 添加约束，check_id_flag 为 1
+        generate_r1cs_equals_const_constraint<FieldT>(this->pb, check_id_flag, FieldT::one(), "check_id_flag");
 
         // Constrain bitness of phi
         zk_phi->generate_r1cs_constraints();
@@ -215,6 +221,9 @@ public:
     ) {
         // Witness `zero`
         this->pb.val(ZERO) = FieldT::zero();
+
+        // witness check_id_flag
+        this->pb.val(check_id_flag) = FieldT::one();
 
         // Witness rt. This is not a sanity check.
         //
