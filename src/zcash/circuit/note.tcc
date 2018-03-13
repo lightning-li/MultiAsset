@@ -226,7 +226,7 @@ public:
             this->value,
             rho->bits,
             this->r->bits,
-            this->id->bits,
+            //this->id->bits,
             commitment
         ));
     }

@@ -19,7 +19,7 @@ public:
         pb_variable_array<FieldT>& v,
         pb_variable_array<FieldT>& rho,
         pb_variable_array<FieldT>& r,
-        pb_variable_array<FieldT>& id,
+        //pb_variable_array<FieldT>& id,
         std::shared_ptr<digest_variable<FieldT>> result
     ) : gadget<FieldT>(pb) {
         // note commitment 生成时用到的前缀 10110000
