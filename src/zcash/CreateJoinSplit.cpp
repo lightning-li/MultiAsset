@@ -43,7 +43,7 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js) {
     uint256 randomSeed;
     uint64_t vpub_old = 10;
     uint64_t vpub_new = 0;
-    uint256 id("0x0000000000000000000000000000000000000000000000000000000000000001");
+    uint256 id = uint256S("0x0000000000000000000000000000000000000000000000000000000000000001");
     uint256 pubKeyHash = random_uint256();
     std::array<uint256, 2> macs;
     std::array<uint256, 2> nullifiers;
@@ -374,7 +374,7 @@ int main(int argc, char **argv)
 
     struct timeval start, end;
 
-    File* f;
+    FILE* f;
     string vk_path = string(param_path + "/MultiAsset-verifying.key");
     string pk_path = string(param_path + "/MultiAsset-proving.key");
     string r1cs_path = string(param_path + "/MultiAsset-r1cs");
