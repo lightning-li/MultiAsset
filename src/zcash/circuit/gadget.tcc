@@ -378,7 +378,7 @@ public:
         }
         acc += 64; // vpub_old
         acc += 64; // vpub_new
-        acc += 256; // asset id
+        //acc += 256; // asset id
         return acc;
     }
 
