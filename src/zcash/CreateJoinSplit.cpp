@@ -42,7 +42,7 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js) {
     uint256 randomSeed;
     uint64_t vpub_old = 10;
     uint64_t vpub_new = 0;
-    uint256 id = "0x0000000000000000000000000000000000000000000000000000000000000001";
+    uint256 id("0x0000000000000000000000000000000000000000000000000000000000000001");
     uint256 pubKeyHash = random_uint256();
     std::array<uint256, 2> macs;
     std::array<uint256, 2> nullifiers;
@@ -372,9 +372,26 @@ int main(int argc, char **argv)
     }
 
     struct timeval start, end;
+
+    File* f;
+    string vk_path = string(param_path + "/MultiAsset-verifying.key");
+    string pk_path = string(param_path + "/MultiAsset-proving.key")
+    string r1cs_path = string(param_path + "/MultiAsset-r1cs");
+
+    f = fopen(vk_path.c_str(), "r");
+    if (f == NULL) {
+        cout << "verifying.key file not exits......" << endl;
+        cout << "now generating vk pk and r1cs......" << endl;
+        gettimeofday(&start, NULL);
+        generate_vk_pk(pk_path, vk_path, r1cs_path);
+        gettimeofday(&end, NULL);
+        std::cout << "generate vk and pk needs " << (1000000 * (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec)) << " microseconds" << std::endl;
+
+    }
+
     gettimeofday(&start, NULL);
-    auto p = ZCJoinSplit::Prepared(string(param_path + "/sprout-verifying.key"),
-                                  (string(param_path + "/sprout-proving.key")));
+    auto p = ZCJoinSplit::Prepared(vk_path,
+                                  pk_path);
     gettimeofday(&end, NULL);
     std::cout << "prepared vk and pk needs " << (1000000 * (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec)) << " microseconds" << std::endl;
     // construct a proof.
