@@ -125,7 +125,7 @@ public:
         block3.reset(new block_variable<FieldT>(pb, {
             last_of_id,
             length_padding
-        }));
+        }, ""));
 
         // 使用 sha256 时，需对每一个 block 进行处理，初始时有一个默认的初始哈希值，
         // sha256_compression_function_gadget 函数每次接收前一个 block 产生的哈希值，
