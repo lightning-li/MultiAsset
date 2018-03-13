@@ -4,7 +4,7 @@ class note_commitment_gadget : gadget<FieldT> {
 private:
     std::shared_ptr<block_variable<FieldT>> block1;
     std::shared_ptr<block_variable<FieldT>> block2;
-    srd::shared_ptr<block_variable<FieldT>> block3;
+    std::shared_ptr<block_variable<FieldT>> block3;
     std::shared_ptr<sha256_compression_function_gadget<FieldT>> hasher1;
     std::shared_ptr<digest_variable<FieldT>> intermediate_hash1;
     std::shared_ptr<sha256_compression_function_gadget<FieldT>> hasher2;
@@ -32,7 +32,8 @@ public:
         pb_variable_array<FieldT> first_of_id(id.begin(), id.begin() + 184);
         pb_variable_array<FieldT> last_of_id(id.begin() + 184, id.end());
 
-        intermediate_hash.reset(new digest_variable<FieldT>(pb, 256, ""));
+        intermediate_hash1.reset(new digest_variable<FieldT>(pb, 256, ""));
+        intermediate_hash2.reset(new digest_variable<FieldT>(pb, 256, ""));
 
         // final padding
         // sha256 函数需要将输入解析成多个 512 bit 的 block，

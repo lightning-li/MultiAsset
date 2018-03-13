@@ -24,7 +24,7 @@ private:
     std::shared_ptr<digest_variable<FieldT>> zk_id; // asset id
     
     std::array<std::shared_ptr<bit_vector_copy_gadget<FieldT> >, NumInputs> check_input_ids; // 检查 id 是否与 input_note 中的 id 相等
-    std::array<std::shared_ptr<bit_vector_copy_gadget<FieldT> >, NUmOutputs> check_output_ids; //检查 id 是否与 output_note 中的 id 相等
+    std::array<std::shared_ptr<bit_vector_copy_gadget<FieldT> >, NumOutputs> check_output_ids; //检查 id 是否与 output_note 中的 id 相等
 
     // Aux inputs
     pb_variable<FieldT> ZERO;
@@ -121,7 +121,7 @@ public:
             ));
 
             // the id of JoinSplit Description euqal id of input_note
-            check_input_ids[i].reset(new bit_vector_copy_gadget<FieldT>(pb, zk_input_notes[i].id->bits, zk_id->bits, 1, FieldT::capacity(), "check_input_id"));
+            check_input_ids[i].reset(new bit_vector_copy_gadget<FieldT>(pb, zk_input_notes[i]->id->bits, zk_id->bits, 1, FieldT::capacity(), "check_input_id"));
         }
 
         for (size_t i = 0; i < NumOutputs; i++) {
@@ -133,7 +133,7 @@ public:
                 i ? true : false,
                 zk_output_commitments[i]
             ));
-            check_output_ids[i].reset(new bit_vector_copy_gadget<FieldT>(pb, zk_output_notes[i].id->bits, zk_id->bits, 1, FieldT::capacity(), " check_output_id"));
+            check_output_ids[i].reset(new bit_vector_copy_gadget<FieldT>(pb, zk_output_notes[i]->id->bits, zk_id->bits, 1, FieldT::capacity(), " check_output_id"));
         }
         
     }
@@ -200,13 +200,7 @@ public:
                 packed_addition(zk_total_uint64)
             ));
         }
-        // id in JoinSplit Description must equal id of input_note and output_note
-        {
-            this->pb.add_r1cs_constraint(r1cs_constraint<FieldT>(
-                1,
-
-            ))
-        }
+       
     }
 
     void generate_r1cs_witness(
