@@ -63,6 +63,7 @@ public:
                 std::array<size_t, ZC_NUM_JS_OUTPUTS>& outputMap,
                 int64_t vpub_old,
                 int64_t vpub_new,
+                const uint256& id,
                 bool computeProof = true,
                 uint256 *esk = nullptr,
                 std::function<int(int)> gen = GetRandInt
