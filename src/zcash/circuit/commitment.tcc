@@ -29,8 +29,8 @@ public:
         pb_variable_array<FieldT> first_of_rho(rho.begin(), rho.begin()+184);
         pb_variable_array<FieldT> last_of_rho(rho.begin()+184, rho.end());
 
-        pb_variable_array<FieldT> first_of_id(id.begin(), id.begin() + 184);
-        pb_variable_array<FieldT> last_of_id(id.begin() + 184, id.end());
+        //pb_variable_array<FieldT> first_of_id(id.begin(), id.begin() + 184);
+        //pb_variable_array<FieldT> last_of_id(id.begin() + 184, id.end());
 
         intermediate_hash1.reset(new digest_variable<FieldT>(pb, 256, ""));
         //intermediate_hash2.reset(new digest_variable<FieldT>(pb, 256, ""));
