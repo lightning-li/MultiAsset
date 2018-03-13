@@ -7,12 +7,12 @@ public:
     pb_variable_array<FieldT> value;
     
     std::shared_ptr<digest_variable<FieldT>> r;
-    std::shared_ptr<digest_variable<FieldT>> id;
+    //std::shared_ptr<digest_variable<FieldT>> id;
 
     note_gadget(protoboard<FieldT> &pb) : gadget<FieldT>(pb) {
         value.allocate(pb, 64);
         r.reset(new digest_variable<FieldT>(pb, 256, ""));
-        id.reset(new digest_variable<FieldT>(pb, 256, ""));
+        //id.reset(new digest_variable<FieldT>(pb, 256, ""));
     }
 
     void generate_r1cs_constraints() {
@@ -25,12 +25,12 @@ public:
         }
 
         r->generate_r1cs_constraints();
-        id->generate_r1cs_constraints();
+        //id->generate_r1cs_constraints();
     }
 
     void generate_r1cs_witness(const Note& note) {
         r->bits.fill_with_bits(this->pb, uint256_to_bool_vector(note.r));
-        id->bits.fill_with_bits(this->pb, uint256_to_bool_vector(note.id));
+        //id->bits.fill_with_bits(this->pb, uint256_to_bool_vector(note.id));
         value.fill_with_bits(this->pb, uint64_to_bool_vector(note.value));
     }
 };
@@ -89,7 +89,7 @@ public:
             this->value,
             rho->bits,
             this->r->bits,
-            this->id->bits,
+            //this->id->bits,
             commitment
         ));
 
