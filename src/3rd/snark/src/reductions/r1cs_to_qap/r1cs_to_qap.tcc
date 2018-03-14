@@ -215,7 +215,7 @@ qap_witness<FieldT> r1cs_to_qap_witness_map(const r1cs_constraint_system<FieldT>
     enter_block("Call to r1cs_to_qap_witness_map");
 
     /* sanity check */
-    assert(cs.is_satisfied(primary_input, auxiliary_input));
+    //assert(cs.is_satisfied(primary_input, auxiliary_input));
 
     const std::shared_ptr<evaluation_domain<FieldT> > domain = get_evaluation_domain<FieldT>(cs.num_constraints() + cs.num_inputs() + 1);
 
