@@ -10,8 +10,9 @@ public:
     //std::shared_ptr<digest_variable<FieldT>> id;
 
     note_gadget(protoboard<FieldT> &pb) : gadget<FieldT>(pb) {
-        pb.set_input_sizes(64);
+        
         value.allocate(pb, 64);
+        pb.set_input_sizes(64);
         r.reset(new digest_variable<FieldT>(pb, 256, ""));
         //id.reset(new digest_variable<FieldT>(pb, 256, ""));
     }
