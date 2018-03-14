@@ -51,6 +51,7 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js) {
     uint256 rt = tree.root();
     std::array<ZCNoteEncryption::Ciphertext, 2> ciphertexts;
     ZCProof proof;
+    uint256 fake_id = uint256S("0x0000000000000000000000000000000000000000000000000000000000000002");
     struct timeval start, end;
     {
         std::array<JSInput, 2> inputs = {
@@ -59,7 +60,7 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js) {
         };
 
         std::array<JSOutput, 2> outputs = {
-            JSOutput(recipient_addr, 10, id),
+            JSOutput(recipient_addr, 10, fake_id),
             JSOutput(id) // dummy output
         };
 
