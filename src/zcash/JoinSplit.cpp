@@ -101,7 +101,7 @@ public:
 
     static void generateNoteGadget(const std::string r1csPath,
                                    const std::string vkPath,
-                                   const std::String pkPath)
+                                   const std::string pkPath)
     {
         protoboard<FieldT> pb;
         note_gadget<FieldT> ng(pb);
