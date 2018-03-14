@@ -320,7 +320,7 @@ public:
 
         // The constraint system must be satisfied or there is an unimplemented
         // or incorrect sanity check above. Or the constraint system is broken!
-        assert(pb.is_satisfied());
+        //assert(pb.is_satisfied());
 
         // TODO: These are copies, which is not strictly necessary.
         std::vector<FieldT> primary_input = pb.primary_input();
