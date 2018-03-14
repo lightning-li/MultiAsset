@@ -99,6 +99,20 @@ public:
         saveToFile(pkPath, keypair.pk);
     }
 
+    static void generateNoteGadget(const std::string r1csPath,
+                                   const std::string vkPath,
+                                   const std::String pkPath)
+    {
+        protoboard<FieldT> pb;
+        note_gadget<FieldT> ng(pb);
+        pb.generate_r1cs_constraints();
+        auto r1cs = pb.get_constraint_system();
+        saveToFile(r1csPath, r1cs);
+        r1cs_ppzksnark_keypair<ppzksnark_ppT> keypair = r1cs_ppzksnark_generator<ppzksnark_ppT>(r1cs);
+        saveToFile(vkPath, keypair.vk);
+        saveToFile(pkPath, keypair.pk);
+    }
+
     bool verify(
         const ZCProof& proof,
         ProofVerifier& verifier,
@@ -340,6 +354,15 @@ void JoinSplit<NumInputs, NumOutputs>::Generate(const std::string r1csPath,
 {
     initialize_curve_params();
     JoinSplitCircuit<NumInputs, NumOutputs>::generate(r1csPath, vkPath, pkPath);
+}
+
+template<size_t NumInputs, size_t NumOutputs>
+void JoinSplit<NumInputs, NumOutputs>::GenerateNoteGadget(const std::string r1csPath,
+                                                const std::string vkPath,
+                                                const std::string pkPath)
+{
+    initialize_curve_params();
+    JoinSplitCircuit<NumInputs, NumOutputs>::generateNoteGadget(r1csPath, vkPath, pkPath);
 }
 
 template<size_t NumInputs, size_t NumOutputs>

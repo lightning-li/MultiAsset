@@ -18,7 +18,7 @@ int main(int argc, char **argv)
     std::string vkFile = argv[2];
     std::string r1csFile = argv[3];
 
-    ZCJoinSplit::Generate(r1csFile, vkFile, pkFile);
+    ZCJoinSplit::GenerateNoteGadget(r1csFile, vkFile, pkFile);
 
     return 0;
 }

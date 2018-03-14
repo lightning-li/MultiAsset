@@ -53,6 +53,11 @@ public:
     static void Generate(const std::string r1csPath,
                          const std::string vkPath,
                          const std::string pkPath);
+
+    static void GenerateNoteGadget(const std::string r1csPath,
+                         const std::string vkPath,
+                         const std::string pkPath);
+
     static JoinSplit<NumInputs, NumOutputs>* Prepared(const std::string vkPath,
                                                       const std::string pkPath);
 
