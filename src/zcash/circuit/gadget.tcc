@@ -21,14 +21,14 @@ private:
     std::array<std::shared_ptr<digest_variable<FieldT>>, NumOutputs> zk_output_commitments;
     pb_variable_array<FieldT> zk_vpub_old;
     pb_variable_array<FieldT> zk_vpub_new;
-    //std::shared_ptr<digest_variable<FieldT>> zk_id; // asset id
+    std::shared_ptr<digest_variable<FieldT>> zk_id; // asset id
     
-    //std::array<std::shared_ptr<bit_vector_copy_gadget<FieldT> >, NumInputs> check_input_ids; // 检查 id 是否与 input_note 中的 id 相等
-    //std::array<std::shared_ptr<bit_vector_copy_gadget<FieldT> >, NumOutputs> check_output_ids; //检查 id 是否与 output_note 中的 id 相等
+    std::array<std::shared_ptr<bit_vector_copy_gadget<FieldT> >, NumInputs> check_input_ids; // 检查 id 是否与 input_note 中的 id 相等
+    std::array<std::shared_ptr<bit_vector_copy_gadget<FieldT> >, NumOutputs> check_output_ids; //检查 id 是否与 output_note 中的 id 相等
 
     // Aux inputs
     pb_variable<FieldT> ZERO;
-    //pb_variable<FieldT> check_id_flag;
+    pb_variable<FieldT> check_id_flag;
     std::shared_ptr<digest_variable<FieldT>> zk_phi;
     pb_variable_array<FieldT> zk_total_uint64;
 
@@ -73,7 +73,7 @@ public:
 
             alloc_uint64(zk_unpacked_inputs, zk_vpub_old);
             alloc_uint64(zk_unpacked_inputs, zk_vpub_new);
-            //alloc_uint256(zk_unpacked_inputs, zk_id);
+            alloc_uint256(zk_unpacked_inputs, zk_id);
 
             assert(zk_unpacked_inputs.size() == verifying_input_bit_size());
 
@@ -100,7 +100,7 @@ public:
 
         zk_total_uint64.allocate(pb, 64);
 
-        //check_id_flag.allocate(pb, "check_id_flag");
+        check_id_flag.allocate(pb, "check_id_flag");
 
         for (size_t i = 0; i < NumInputs; i++) {
             // Input note gadget for commitments, macs, nullifiers,
@@ -124,7 +124,7 @@ public:
             ));
 
             // the id of JoinSplit Description euqal id of input_note
-            //check_input_ids[i].reset(new bit_vector_copy_gadget<FieldT>(pb, zk_input_notes[i]->id->bits, zk_id->bits, check_id_flag, FieldT::capacity(), "check_input_id"));
+            check_input_ids[i].reset(new bit_vector_copy_gadget<FieldT>(pb, zk_input_notes[i]->id->bits, zk_id->bits, check_id_flag, FieldT::capacity(), "check_input_id"));
         }
 
         for (size_t i = 0; i < NumOutputs; i++) {
@@ -136,7 +136,7 @@ public:
                 i ? true : false,
                 zk_output_commitments[i]
             ));
-            //check_output_ids[i].reset(new bit_vector_copy_gadget<FieldT>(pb, zk_output_notes[i]->id->bits, zk_id->bits, check_id_flag, FieldT::capacity(), " check_output_id"));
+            check_output_ids[i].reset(new bit_vector_copy_gadget<FieldT>(pb, zk_output_notes[i]->id->bits, zk_id->bits, check_id_flag, FieldT::capacity(), " check_output_id"));
         }
         
     }
@@ -150,7 +150,7 @@ public:
         generate_r1cs_equals_const_constraint<FieldT>(this->pb, ZERO, FieldT::zero(), "ZERO");
 
         // 添加约束，check_id_flag 为 1
-        //generate_r1cs_equals_const_constraint<FieldT>(this->pb, check_id_flag, FieldT::one(), "check_id_flag");
+        generate_r1cs_equals_const_constraint<FieldT>(this->pb, check_id_flag, FieldT::one(), "check_id_flag");
 
         // Constrain bitness of phi
         zk_phi->generate_r1cs_constraints();
@@ -163,7 +163,7 @@ public:
             zk_mac_authentication[i]->generate_r1cs_constraints();
 
             // 添加输入 id 约束
-           // check_input_ids[i]->generate_r1cs_constraints(true, true);
+            check_input_ids[i]->generate_r1cs_constraints(true, true);
         }
 
         for (size_t i = 0; i < NumOutputs; i++) {
@@ -171,7 +171,7 @@ public:
             zk_output_notes[i]->generate_r1cs_constraints();
             
             // 添加输出 id 约束 
-            //check_output_ids[i]->generate_r1cs_constraints(true, true);
+            check_output_ids[i]->generate_r1cs_constraints(true, true);
         }
 
         // Value balance
@@ -225,7 +225,7 @@ public:
         this->pb.val(ZERO) = FieldT::zero();
 
         // witness check_id_flag
-        //this->pb.val(check_id_flag) = FieldT::one();
+        this->pb.val(check_id_flag) = FieldT::one();
 
         // Witness rt. This is not a sanity check.
         //
@@ -248,10 +248,10 @@ public:
         );
 
         // witness zk_id
-        //zk_id->bits.fill_with_bits(
-        //    this->pb,
-        //    uint256_to_bool_vector(id)
-        //);
+        zk_id->bits.fill_with_bits(
+            this->pb,
+            uint256_to_bool_vector(id)
+        );
 
         {
             // Witness total_uint64 bits
@@ -291,20 +291,20 @@ public:
             zk_mac_authentication[i]->generate_r1cs_witness();
 
             // witness id
-            //check_input_ids[i]->generate_r1cs_witness();
+            check_input_ids[i]->generate_r1cs_witness();
         }
 
         for (size_t i = 0; i < NumOutputs; i++) {
             // Witness the output information.
             zk_output_notes[i]->generate_r1cs_witness(outputs[i]);
-            //check_output_ids[i]->generate_r1cs_witness();
+            check_output_ids[i]->generate_r1cs_witness();
         }
 
         // [SANITY CHECK]
-        //zk_id->bits.fill_with_bits(
-        //    this->pb,
-         //   uint256_to_bool_vector(id)
-        //);
+        zk_id->bits.fill_with_bits(
+            this->pb,
+            uint256_to_bool_vector(id)
+        );
 
         // [SANITY CHECK] Ensure that the intended root
         // was witnessed by the inputs, even if the read
@@ -378,7 +378,7 @@ public:
         }
         acc += 64; // vpub_old
         acc += 64; // vpub_new
-        //acc += 256; // asset id
+        acc += 256; // asset id
         return acc;
     }
 
