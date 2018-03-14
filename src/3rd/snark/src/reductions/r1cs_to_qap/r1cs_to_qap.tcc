@@ -17,6 +17,7 @@
 #include "common/profiling.hpp"
 #include "common/utils.hpp"
 #include "algebra/evaluation_domain/evaluation_domain.hpp"
+#include <iostream>
 
 namespace libsnark {
 
@@ -106,7 +107,8 @@ qap_instance_evaluation<FieldT> r1cs_to_qap_instance_map_with_evaluation(const r
                                                                          const FieldT &t)
 {
     enter_block("Call to r1cs_to_qap_instance_map_with_evaluation");
-
+    std::cout << "r1cs.num_constraints are " << cs.num_constraints() << std::endl;
+    std::cout << "cs.num_inputs are " << cs.num_inputs() << std::endl;
     const std::shared_ptr<evaluation_domain<FieldT> > domain = get_evaluation_domain<FieldT>(cs.num_constraints() + cs.num_inputs() + 1);
 
     std::vector<FieldT> At, Bt, Ct, Ht;

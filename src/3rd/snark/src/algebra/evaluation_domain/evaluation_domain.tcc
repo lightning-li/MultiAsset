@@ -22,6 +22,7 @@
 #include <cassert>
 #include "algebra/fields/field_utils.hpp"
 #include "algebra/evaluation_domain/domains/basic_radix2_domain.hpp"
+#include <iostream>
 
 namespace libsnark {
 
@@ -31,7 +32,8 @@ std::shared_ptr<evaluation_domain<FieldT> > get_evaluation_domain(const size_t m
     assert(min_size > 1);
     const size_t log_min_size = log2(min_size);
     assert(log_min_size <= (FieldT::s+1));
-
+    std::cout << "log_min_size " << log_min_size << std::endl;
+    std::cout << "FieldT::s+1 " << FieldT::s+1 << std::endl;
     std::shared_ptr<evaluation_domain<FieldT> > result;
     if (min_size == (1u << log_min_size))
     {
