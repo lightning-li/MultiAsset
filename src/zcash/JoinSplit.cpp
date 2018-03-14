@@ -240,10 +240,11 @@ public:
         for (size_t i = 0; i < NumOutputs; i++) {
             // Sanity checks of output
             {   
+                /*
                 if (outputs[i].id != id) {
                     throw std::invalid_argument("output_note id not equal id of joinsplit description");
                 }
-
+                */
                 if (outputs[i].value > MAX_MONEY) {
                     throw std::invalid_argument("nonsensical output value");
                 }
