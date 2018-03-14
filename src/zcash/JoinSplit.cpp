@@ -105,7 +105,7 @@ public:
     {
         protoboard<FieldT> pb;
         note_gadget<FieldT> ng(pb);
-        pb.generate_r1cs_constraints();
+        ng.generate_r1cs_constraints();
         auto r1cs = pb.get_constraint_system();
         saveToFile(r1csPath, r1cs);
         r1cs_ppzksnark_keypair<ppzksnark_ppT> keypair = r1cs_ppzksnark_generator<ppzksnark_ppT>(r1cs);
