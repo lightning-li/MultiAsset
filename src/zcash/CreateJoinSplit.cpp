@@ -26,6 +26,12 @@ bool generate_vk_pk(string pkFile, string vkFile, string r1csFile)
     return true;
 }
 
+// 随机生成 100 个地址，并赋予每个地址 100 个 MS1coin 和 100 个 MS2coin
+
+void initial_multi_asset() {
+
+}
+
 bool test_multi_asset_joinsplit(ZCJoinSplit* js) {
     
     // 创建验证上下文环境
@@ -102,8 +108,9 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js) {
         rt,
         id
     )) {
-        std::cout << "verify passed....." << std::endl;
+        std::cout << "verify passed......" << std::endl;
     } else {
+        std::cout << "verify failed......" << std::endl;
         return false;
     }
 
