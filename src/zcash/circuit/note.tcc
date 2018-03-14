@@ -12,7 +12,6 @@ public:
     note_gadget(protoboard<FieldT> &pb) : gadget<FieldT>(pb) {
         
         value.allocate(pb, 64);
-        pb.set_input_sizes(64);
         r.reset(new digest_variable<FieldT>(pb, 256, ""));
         id.reset(new digest_variable<FieldT>(pb, 256, ""));
     }
@@ -91,7 +90,7 @@ public:
             this->value,
             rho->bits,
             this->r->bits,
-            //this->id->bits,
+            this->id->bits,
             commitment
         ));
 
@@ -228,7 +227,7 @@ public:
             this->value,
             rho->bits,
             this->r->bits,
-            //this->id->bits,
+            this->id->bits,
             commitment
         ));
     }
