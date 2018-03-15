@@ -9,6 +9,7 @@
 #include <libsnark/common/profiling.hpp>
 #include "crypto/common.h"
 #include "zcash/MultiAssetAccount.hpp"
+#include "utils/streams.h"
 
 #include <array>
 #include <iostream>
@@ -80,7 +81,7 @@ void load_account_from_db() {
         ss << value;
         ss >> maa;
         
-        std::cout << "private key is " << maa.a_sk.innre().GetHex() << std::endl;
+        std::cout << "private key is " << maa.a_sk.inner().GetHex() << std::endl;
 
         for (auto iter = maa.asset.begin(); iter != maa.asset.end(); ++iter) {
             std::cout << "asset id " << (iter->first).GetHex() << " value " << iter->second << std::endl; 

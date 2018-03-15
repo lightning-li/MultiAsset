@@ -4,6 +4,8 @@
 #include "zcash/Note.hpp"
 #include "utils/serialize.h"
 
+using namespace libzcash;
+
 class MultiAssetAccount {
 
 public:
