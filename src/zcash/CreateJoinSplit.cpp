@@ -10,6 +10,7 @@
 #include "crypto/common.h"
 #include "zcash/MultiAssetAccount.hpp"
 #include "utils/streams.h"
+#include "utils/version.h"
 
 #include <array>
 #include <iostream>
@@ -74,7 +75,7 @@ void load_account_from_db() {
     assert(status.ok());
     rocksdb::Iterator* it = db->NewIterator(rocksdb::ReadOptions());
     for (it->SeekToFirst(); it->Valid(); it->Next()) {
-        std::cout << it->key().toString() << ": " << it->value().ToString() << std::endl;
+        std::cout << it->key().ToString() << ": " << it->value().ToString() << std::endl;
         MultiAssetAccount maa;
         string value = it->value().ToString();
         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
