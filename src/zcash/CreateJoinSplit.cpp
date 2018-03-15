@@ -8,10 +8,15 @@
 #include "zcash/ShieldTransaction.h"
 #include <libsnark/common/profiling.hpp>
 #include "crypto/common.h"
+#include "zcash/MultiAssetAccount.hpp"
+
 #include <array>
 #include <iostream>
 #include <sys/time.h>
 #include <stdio.h>
+#include <cassert>
+
+#include "rocksdb/db.h" 
 
 using namespace libzcash;
 using namespace std;
@@ -29,7 +34,62 @@ bool generate_vk_pk(string pkFile, string vkFile, string r1csFile)
 // 随机生成 100 个地址，并赋予每个地址 100 个 MS1coin 和 100 个 MS2coin
 
 void initial_multi_asset() {
+    rocksdb::DB* db;
+    rocksdb::Options options;
+    options.create_if_missing = true;
+    rocksdb::Status status = rocksdb::DB::Open(options, "/home/likang/git/MultiAsset/walletDB", &db);
+    assert(status.ok());
+    uint252 a_sk;
+    uint256 id1 = uint256S("0x0000000000000000000000000000000000000000000000000000000000000001");
+    uint256 id2 = uint256S("0x0000000000000000000000000000000000000000000000000000000000000002");
+    uint256 a_pk;
 
+    for (int i = 0; i < 100; ++i) {
+        a_sk = random_uint252();
+        a_pk = SpendingKey(a_sk).address().a_pk;
+        string a_pk_hex = a_pk.GetHex();
+        std::cout << "a_sk is " << a_sk.inner().GetHex() << " and the a_pk is " << a_pk_hex << std::endl;
+
+        MultiAssetAccount account;
+        account.a_sk = a_sk;
+        account.asset[id1] = 100;
+        account.asset[id2] = 100;
+
+        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+
+        ss << account;
+        std::string serialize_data = ss.str();
+
+        std::cout << "write a_pk_hex " << a_pk_hex << "  and MultiAssetAccount " << serialize_data << " in to rocksdb." << std::endl;
+        rocksdb::Status s = db->Put(rocksdb::WriteOptions(), a_pk_hex, serialize_data);
+    }
+    delete db;
+}
+
+void load_account_from_db() {
+    rocksdb::DB* db;
+    rocksdb::Options options;
+    rocksdb::Status status = rocksdb::DB::Open(options, "/home/likang/git/MultiAsset/walletDB", &db);
+    assert(status.ok());
+    rocksdb::Iterator* it = db->NewIterator(rocksdb::ReadOptions());
+    for (it->SeekToFirst(); it->Valid(); it->Next()) {
+        std::cout << it->key().toString() << ": " << it->value().ToString() << std::endl;
+        MultiAssetAccount maa;
+        string value = it->value().ToString();
+        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+        ss << value;
+        ss >> maa;
+        
+        std::cout << "private key is " << maa.a_sk.innre().GetHex() << std::endl;
+
+        for (auto iter = maa.asset.begin(); iter != maa.asset.end(); ++iter) {
+            std::cout << "asset id " << (iter->first).GetHex() << " value " << iter->second << std::endl; 
+        }
+
+    }
+    assert(it->status().ok());
+    delete it;
+    delete db;
 }
 
 bool test_multi_asset_joinsplit(ZCJoinSplit* js) {
@@ -367,8 +427,7 @@ bool test_joinsplit(ZCJoinSplit* js) {
 }
 */
 
-int main(int argc, char **argv)
-{
+void test_zero_proof() {
     libsnark::start_profiling();
 
     char* home = getenv("HOME");
@@ -418,6 +477,12 @@ int main(int argc, char **argv)
                              0);
     }
     */
-    test_multi_asset_joinsplit(p);
+    //test_multi_asset_joinsplit(p);
     delete p; // not that it matters
+}
+
+int main(int argc, char **argv)
+{
+    initial_multi_asset();
+    load_account_from_db();
 }
