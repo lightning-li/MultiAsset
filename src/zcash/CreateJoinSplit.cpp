@@ -46,7 +46,7 @@ void initial_multi_asset() {
     uint256 id2 = uint256S("0x0000000000000000000000000000000000000000000000000000000000000002");
     uint256 a_pk;
 
-    for (int i = 0; i < 100; ++i) {
+    for (int i = 0; i < 5; ++i) {
         a_sk = random_uint252();
         a_pk = SpendingKey(a_sk).address().a_pk;
         string a_pk_hex = a_pk.GetHex();
@@ -79,7 +79,7 @@ void load_account_from_db() {
         MultiAssetAccount maa;
         string value = it->value().ToString();
         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
-        ss << value;
+        ss << value.c_str();
         ss >> maa;
         
         std::cout << "private key is " << maa.a_sk.inner().GetHex() << std::endl;
