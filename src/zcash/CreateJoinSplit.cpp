@@ -78,8 +78,9 @@ void load_account_from_db() {
         std::cout << it->key().ToString() << ": " << it->value().ToString() << std::endl;
         MultiAssetAccount maa;
         string value = it->value().ToString();
-        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
-        ss << value.c_str();
+        size_t value_len = value.size();
+        std::vector<char> vv(value.c_str(), value.c_str() + value_len);
+        
         ss >> maa;
         
         std::cout << "private key is " << maa.a_sk.inner().GetHex() << std::endl;
