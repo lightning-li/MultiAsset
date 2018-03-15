@@ -80,7 +80,7 @@ void load_account_from_db() {
         string value = it->value().ToString();
         size_t value_len = value.size();
         std::vector<char> vv(value.c_str(), value.c_str() + value_len);
-        
+        CDataStream ss(vv, SER_NETWORK, PROTOCOL_VERSION);
         ss >> maa;
         
         std::cout << "private key is " << maa.a_sk.inner().GetHex() << std::endl;
