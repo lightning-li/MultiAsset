@@ -15,4 +15,4 @@ MESSAGE(STATUS "ZCASH_DEPEND_LIBS:" ${ZCASH_DEPEND_LIBS})
 
 add_executable(${APP_MULTIASSET} ${APP_MULTIASSET_SRC})
 
-target_link_libraries(${APP_MULTIASSET} ${ZCASH_DEPEND_LIBS} pthread lbz2)
+target_link_libraries(${APP_MULTIASSET} ${ZCASH_DEPEND_LIBS} pthread bz2)
