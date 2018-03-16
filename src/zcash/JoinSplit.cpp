@@ -259,7 +259,7 @@ public:
             // Sample r
             uint256 r = random_uint256();
 
-            out_notes[i] = outputs[i].note(phi, r, i, h_sig);
+            out_notes[i] = outputs[i].note(phi, r, i, h_sig, id);
         }
 
         if (lhs_value != rhs_value) {

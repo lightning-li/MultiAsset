@@ -17,6 +17,8 @@
 #include <sys/time.h>
 #include <stdio.h>
 #include <cassert>
+#include <map>
+#include <sys/stat.h>
 
 #include "rocksdb/db.h" 
 
@@ -46,7 +48,7 @@ void initial_multi_asset() {
     uint256 id2 = uint256S("0x0000000000000000000000000000000000000000000000000000000000000002");
     uint256 a_pk;
 
-    for (int i = 0; i < 5; ++i) {
+    for (int i = 0; i < 4; ++i) {
         a_sk = random_uint252();
         a_pk = SpendingKey(a_sk).address().a_pk;
         string a_pk_hex = a_pk.GetHex();
@@ -68,69 +70,111 @@ void initial_multi_asset() {
     delete db;
 }
 
-void load_account_from_db() {
+void load_account_from_db(std::map<uint256, MultiAssetAccount>& maas, ZCIncrementalMerkleTree& tree) {
     rocksdb::DB* db;
     rocksdb::Options options;
     rocksdb::Status status = rocksdb::DB::Open(options, "/home/likang/git/MultiAsset/walletDB", &db);
     assert(status.ok());
-    rocksdb::Iterator* it = db->NewIterator(rocksdb::ReadOptions());
-    for (it->SeekToFirst(); it->Valid(); it->Next()) {
-        std::cout << it->key().ToString() << ": " << it->value().ToString() << std::endl;
-        MultiAssetAccount maa;
-        string value = it->value().ToString();
-        size_t value_len = value.size();
-        std::vector<char> vv(value.c_str(), value.c_str() + value_len);
+
+    // load tree from rocksdb
+    // 使用 "0x0000000000000000000000000000000000000000000000000000000000000000" 作为 tree 的 key
+    string tree_key = "0x0000000000000000000000000000000000000000000000000000000000000000";
+    string tree_value;
+    rocksdb::Status st = db->Get(rocksdb::ReadOptions(), tree_key, &tree_value);
+    if (st.ok()) {
+        // unserialise tree_value to tree
+        std::vector<char> vv(tree_value.c_str(), tree_value.c_str() + tree_value.size());
         CDataStream ss(vv, SER_NETWORK, PROTOCOL_VERSION);
-        ss >> maa;
-        
-        std::cout << "private key is " << maa.a_sk.inner().GetHex() << std::endl;
+        ss >> tree;
+        std::cout << "tree's root loaded from rocksdb is " << tree.root().GetHex() << std::endl;
+    } else {
+        std::cout << "can not find tree in rocksdb" << std::endl;
+    }
+    rocksdb::Iterator* it = db->NewIterator(rocksdb::ReadOptions());
 
-        for (auto iter = maa.asset.begin(); iter != maa.asset.end(); ++iter) {
-            std::cout << "asset id " << (iter->first).GetHex() << " value " << iter->second << std::endl; 
+    for (it->SeekToFirst(); it->Valid(); it->Next()) {
+        // std::cout << it->key().ToString() << ": " << it->value().ToString() << std::endl;
+        if (it->key().ToString() != tree_key) {
+            MultiAssetAccount maa;
+            string value = it->value().ToString();
+            size_t value_len = value.size();
+            std::vector<char> vv(value.c_str(), value.c_str() + value_len);
+            CDataStream ss(vv, SER_NETWORK, PROTOCOL_VERSION);
+            ss >> maa;
+            maas[uint256S(it->key().ToString())] = maa;
+            //std::cout << "private key is " << maa.a_sk.inner().GetHex() << std::endl;
+
+            for (auto iter = maa.asset.begin(); iter != maa.asset.end(); ++iter) {
+                std::cout << "transparent asset id " << (iter->first).GetHex() << " value " << iter->second << std::endl; 
+            }
+
+            for (auto iter = maas.notes.begin(); iter != maas.notes.end(); ++iter) {
+                std::cout << "note asset id " << iter->first.id.GetHex() << " value " << iter->first.value << std::endl;
+                std::cout << "note witness root is " << maas[iter->first.cm()].root() << std::endl; 
+            }
         }
-
     }
     assert(it->status().ok());
     delete it;
     delete db;
 }
 
-bool test_multi_asset_joinsplit(ZCJoinSplit* js) {
+// 设钱包中的账户公有 n 个，n 为 4 的整数倍，该函数执行如下操作：
+// 1. 1 => n/2+1、n/2+2; 2 => n/2+1、n/2+2 发送 value 为 random(1, 100) MS1coin。以此类推
+// 2. n/2+1 => 1、2；n/2+2 => 1、2 发送 value 为 random(1, 100) MS2coin. 以此类推
+
+bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAccount>& maas, ZCIncrementalMerkleTree& tree;) {
     
     // 创建验证上下文环境
     auto verifier = libzcash::ProofVerifier::Strict();
+
+    int maas_len = maas.size();
+    auto maas_begin = maas.begin();
+    uint256 id1 = uint256S("0x0000000000000000000000000000000000000000000000000000000000000001");
+    uint256 id2 = uint256S("0x0000000000000000000000000000000000000000000000000000000000000002");
     
-    // 伪造接收者信息
-    SpendingKey recipient_key = SpendingKey::random();
-    PaymentAddress recipient_addr = recipient_key.address();
+    rocksdb::DB* db;
+    rocksdb::Options options;
+    rocksdb::Status status = rocksdb::DB::Open(options, "/home/likang/git/MultiAsset/walletDB", &db);
+    assert(status.ok());
 
-    // 创建匿名资产承诺树
-    ZCIncrementalMerkleTree tree;
+    for (int i = 0; i < maas_len / 2; ++i) {
+        
+        MultiAssetAccount sender_account = (maas_begin + i)->second;
 
-    // 创建 JoinSplit 描述
-    uint256 ephemeralKey;  // 创建临时公钥
-    uint256 randomSeed;
-    uint64_t vpub_old = 10;
-    uint64_t vpub_new = 0;
-    uint256 id = uint256S("0x0000000000000000000000000000000000000000000000000000000000000001");
-    uint256 pubKeyHash = random_uint256();
-    std::array<uint256, 2> macs;
-    std::array<uint256, 2> nullifiers;
-    std::array<uint256, 2> commitments;
-    uint256 rt = tree.root();
-    std::array<ZCNoteEncryption::Ciphertext, 2> ciphertexts;
-    ZCProof proof;
-    uint256 fake_id = uint256S("0x0000000000000000000000000000000000000000000000000000000000000002");
-    struct timeval start, end;
-    {
+        SpendingKey recipient_key1 = SpendingKey((maas_begin + maas_len / 2 + i / 2)->second.a_sk);
+        PaymentAddress recipient_addr1 = recipient_key1.address();
+        SpendingKey recipient_key2 = SpendingKey((maas_begin + maas_len / 2 + i / 2 + 1)->second.z_sk);
+        PaymentAddress recipient_addr2 = recipient_key2.address();
+
+        // 创建临时公钥，用于与接收方协商出加密传输的对称密钥
+        uint256 ephemeralKey;
+        // 创建随机种子, 用于生成 JoinSplit 的签名
+        uint256 randomSeed;
+        // 创建 JoinSplitPubKey，用于生成 JoinSplit 的签名
+        uint256 pubKeyHash = random_uint256();
+
+        uint64_t v1 = GetRand(sender_account.asset[id1]);
+        uint64_t v2 = GetRand(sender_account.asset[id1] - v1);
+        uint64_t vpub_old = v1 + v2;
+        assert(sender_account.asset[id1] >= vpub_old);
+        uint64_t vpub_new = 0;
+        std::array<uint256, 2> macs;
+        std::array<uint256, 2> nullifiers;
+        std::array<uint256, 2> commitments;
+        uint256 rt = tree.root();
+        std::array<ZCNoteEncryption::Ciphertext, 2> ciphertexts;
+        ZCProof proof;
+        struct timeval start, end;
+        
         std::array<JSInput, 2> inputs = {
-            JSInput(id), // dummy input
-            JSInput(id) // dummy input
+            JSInput(id1), // dummy input
+            JSInput(id1) // dummy input
         };
 
         std::array<JSOutput, 2> outputs = {
-            JSOutput(recipient_addr, 10, fake_id),
-            JSOutput(id) // dummy output
+            JSOutput(recipient_addr1, v1, id1),
+            JSOutput(recipient_addr2, v2, id1) 
         };
 
         std::array<Note, 2> output_notes;
@@ -154,48 +198,218 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js) {
         );
         gettimeofday(&end, NULL);
         std::cout << "---------------generate proof needs " << (1000000 * (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec)) << " microseconds" << std::endl;
+        
+        // Verify the transaction:
+        if (js->verify(
+            proof,
+            verifier,
+            pubKeyHash,
+            randomSeed,
+            macs,
+            nullifiers,
+            commitments,
+            vpub_old,
+            vpub_new,
+            rt,
+            id
+        )) {
+            std::cout << "verify passed......" << std::endl;
+        } else {
+            gettimeofday(&start, NULL);
+            std::cout << "verify failed......" << std::endl;
+            std::cout << "---------------verify proof needs " << (1000000 * (start.tv_sec - end.tv_sec) + (start.tv_usec - end.tv_usec)) << " microseconds" << std::endl;
+            return false;
+        }
+        
+        // update account witness
+        for (auto iter = maas.begin(); iter != maas.end(); ++iter) {
+            auto maa = iter->second;
+            for (auto it = maa.notes.begin(); it != maa.notes.end(); ++it) {
+                if (it->second) {
+                    maa.note_witnesses[it->first.cm()].append(commitments[0]);
+                    maa.note_witnesses[it->first.cm()].append(commitments[1]);
+                }
+            }
+        }
 
+        tree.append(commitments[0]);
+        maas[recipient_addr1.a_pk.GetHex()].notes.push_back(output_notes[0]);
+        maas[recipient_addr1.a_pk.GetHex()].note_witnesses[output_notes[0].cm()] = tree.witness();
+        tree.append(commitments[1]);
+        maas[recipient_addr1.a_pk.GetHex()].note_witnesses[output_notes[0].cm()].append(commitments[1]);
+        
+        maas[recipient_addr2.a_pk.GetHex()].notes.push_back(output_notes[1]);
+        maas[recipient_addr1.a_pk.GetHex()].note_witnesses[output_notes[1].cm()] = tree.witness();
+    
+        // Recipient should decrypt
+        // Now the recipient should spend the money again
+        for (int i = 0; i < 2; ++i) {
+            auto h_sig = js->h_sig(randomSeed, nullifiers, pubKeyHash);
+            ZCNoteDecryption decryptor(i == 0 ? recipient_key1.viewing_key() : recipient_key2.viewing_key());
+
+            auto note_pt = NotePlaintext::decrypt(
+                decryptor,
+                i == 0 ? ciphertexts[0] : ciphertexts[1],
+                ephemeralKey,
+                h_sig,
+                i
+            );
+
+            auto decrypted_note = note_pt.note(i == 0 ? recipient_addr1 : recipient_addr2);
+
+            if (decrypted_note.value != (i == 0 ? v1 : v2) || decrypted_note.id.GetHex() != id2) {
+                cout << "error...." << endl;
+                return false;
+            } else {
+                cout << "decrypt successfully......"
+            }
+        }
     }
 
-    // Verify the transaction:
-    if (js->verify(
-        proof,
-        verifier,
-        pubKeyHash,
-        randomSeed,
-        macs,
-        nullifiers,
-        commitments,
-        vpub_old,
-        vpub_new,
-        rt,
-        id
-    )) {
-        std::cout << "verify passed......" << std::endl;
-    } else {
-        std::cout << "verify failed......" << std::endl;
-        return false;
+    for (int i = maas_len / 2; i < maas_len; ++i) {
+        
+        MultiAssetAccount sender_account = (maas_begin + i)->second;
+
+        SpendingKey recipient_key1 = SpendingKey((maas_begin + (i-maas_len/2) / 2)->second.a_sk);
+        PaymentAddress recipient_addr1 = recipient_key1.address();
+        SpendingKey recipient_key2 = SpendingKey((maas_begin + (i-maas_len/2) / 2 + 1)->second.z_sk);
+        PaymentAddress recipient_addr2 = recipient_key2.address();
+
+        // 创建临时公钥，用于与接收方协商出加密传输的对称密钥
+        uint256 ephemeralKey;
+        // 创建随机种子, 用于生成 JoinSplit 的签名
+        uint256 randomSeed;
+        // 创建 JoinSplitPubKey，用于生成 JoinSplit 的签名
+        uint256 pubKeyHash = random_uint256();
+
+        uint64_t v1 = GetRand(sender_account.asset[id2]);
+        uint64_t v2 = GetRand(sender_account.asset[id2] - v1);
+        uint64_t vpub_old = v1 + v2;
+        assert(sender_account.asset[id1] >= vpub_old);
+        uint64_t vpub_new = 0;
+        std::array<uint256, 2> macs;
+        std::array<uint256, 2> nullifiers;
+        std::array<uint256, 2> commitments;
+        uint256 rt = tree.root();
+        std::array<ZCNoteEncryption::Ciphertext, 2> ciphertexts;
+        ZCProof proof;
+        struct timeval start, end;
+        
+        std::array<JSInput, 2> inputs = {
+            JSInput(id2), // dummy input
+            JSInput(id2) // dummy input
+        };
+
+        std::array<JSOutput, 2> outputs = {
+            JSOutput(recipient_addr1, v1, id2),
+            JSOutput(recipient_addr2, v2, id2) 
+        };
+
+        std::array<Note, 2> output_notes;
+        gettimeofday(&start, NULL);
+        // Perform the proof
+        proof = js->prove(
+            inputs,
+            outputs,
+            output_notes,
+            ciphertexts,
+            ephemeralKey,
+            pubKeyHash,
+            randomSeed,
+            macs,
+            nullifiers,
+            commitments,
+            vpub_old,
+            vpub_new,
+            rt,
+            id
+        );
+        gettimeofday(&end, NULL);
+        std::cout << "---------------generate proof needs " << (1000000 * (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec)) << " microseconds" << std::endl;
+        
+        // Verify the transaction:
+        if (js->verify(
+            proof,
+            verifier,
+            pubKeyHash,
+            randomSeed,
+            macs,
+            nullifiers,
+            commitments,
+            vpub_old,
+            vpub_new,
+            rt,
+            id
+        )) {
+            std::cout << "verify passed......" << std::endl;
+        } else {
+            gettimeofday(&start, NULL);
+            std::cout << "verify failed......" << std::endl;
+            std::cout << "---------------verify proof needs " << (1000000 * (start.tv_sec - end.tv_sec) + (start.tv_usec - end.tv_usec)) << " microseconds" << std::endl;
+            return false;
+        }
+        
+        // update account witness
+        for (auto iter = maas.begin(); iter != maas.end(); ++iter) {
+            auto maa = iter->second;
+            for (auto it = maa.notes.begin(); it != maa.notes.end(); ++it) {
+                if (it->second) {
+                    maa.note_witnesses[it->first.cm()].append(commitments[0]);
+                    maa.note_witnesses[it->first.cm()].append(commitments[1]);
+                }
+            }
+        }
+
+        tree.append(commitments[0]);
+        maas[recipient_addr1.a_pk.GetHex()].notes.push_back(output_notes[0]);
+        maas[recipient_addr1.a_pk.GetHex()].note_witnesses[output_notes[0].cm()] = tree.witness();
+        tree.append(commitments[1]);
+        maas[recipient_addr1.a_pk.GetHex()].note_witnesses[output_notes[0].cm()].append(commitments[1]);
+        
+        maas[recipient_addr2.a_pk.GetHex()].notes.push_back(output_notes[1]);
+        maas[recipient_addr1.a_pk.GetHex()].note_witnesses[output_notes[1].cm()] = tree.witness();
+        
+        // Recipient should decrypt
+        // Now the recipient should spend the money again
+        for (int i = 0; i < 2; ++i) {
+            auto h_sig = js->h_sig(randomSeed, nullifiers, pubKeyHash);
+            ZCNoteDecryption decryptor(i == 0 ? recipient_key1.viewing_key() : recipient_key2.viewing_key());
+
+            auto note_pt = NotePlaintext::decrypt(
+                decryptor,
+                i == 0 ? ciphertexts[0] : ciphertexts[1],
+                ephemeralKey,
+                h_sig,
+                i
+            );
+
+            auto decrypted_note = note_pt.note(i == 0 ? recipient_addr1 : recipient_addr2);
+
+            if (decrypted_note.value != (i == 0 ? v1 : v2) || decrypted_note.id.GetHex() != id2) {
+                cout << "error...." << endl;
+                return false;
+            } else {
+                cout << "decrypt successfully......"
+            }
+        }
     }
 
-    // Recipient should decrypt
-    // Now the recipient should spend the money again
-    auto h_sig = js->h_sig(randomSeed, nullifiers, pubKeyHash);
-    ZCNoteDecryption decryptor(recipient_key.viewing_key());
+    // write tree to rocksdb
+    rocksdb::WriteBatch batch;
+    string tree_key = "0x0000000000000000000000000000000000000000000000000000000000000000";
+    CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+    ss << tree;
+    batch.Put(rocksdb::WriteOptions(), tree_key, ss.str());
 
-    auto note_pt = NotePlaintext::decrypt(
-        decryptor,
-        ciphertexts[0],
-        ephemeralKey,
-        h_sig,
-        0
-    );
-
-    auto decrypted_note = note_pt.note(recipient_addr);
-
-    if (decrypted_note.value != 10) {
-        cout << "error...." << endl;
-        return false;
+    // write account into rocksdb
+    for (auto iter = maas.begin(); iter != maas.end(); ++iter) {
+        CDataStream cd(SER_NETWORK, PROTOCOL_VERSION);
+        cd << iter->second;
+        batch->Put(rocksdb::WriteOptions(), iter->first.GetHex(), cd.str());
     }
+    status = db->Write(rocksdb::WriteOptions(), &batch);
+    assert(status.ok());
+    delete db;
     /*
     // Insert the commitments from the last tx into the tree
     tree.append(commitments[0]);
@@ -430,7 +644,7 @@ bool test_joinsplit(ZCJoinSplit* js) {
 }
 */
 
-void test_zero_proof() {
+void test_zero_proof(ZCJoinSplit* &js) {
     libsnark::start_profiling();
 
     char* home = getenv("HOME");
@@ -461,7 +675,7 @@ void test_zero_proof() {
     }
 
     gettimeofday(&start, NULL);
-    auto p = ZCJoinSplit::Prepared(vk_path,
+    js = ZCJoinSplit::Prepared(vk_path,
                                   pk_path);
     gettimeofday(&end, NULL);
     std::cout << "prepared vk and pk needs " << (1000000 * (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec)) << " microseconds" << std::endl;
@@ -485,7 +699,26 @@ void test_zero_proof() {
 }
 
 int main(int argc, char **argv)
-{
-    initial_multi_asset();
-    load_account_from_db();
+{   
+    struct stat st;
+    if (stat("/home/likang/git/MultiAsset/walletDB", &st) == 0 && S_ISDIR(st.st_mode)) {
+        std::cout << "walletDB is already exits, do not initialise it..." << std::endl;
+    }
+    else {
+        std::cout << "walletDB is not here, do initialise it with 100 accounts" << std::endl;
+        initial_multi_asset();
+    }
+    std::map<uint256, MultiAssetAccount> maas;
+    ZCIncrementalMerkleTree tree;
+    std::cout << "-----------load account from rocksdb--------------" << std::endl;
+    load_account_from_db(maas, tree);
+    ZCJoinSplit* js;
+    test_zero_proof(js);
+    std::cout << "-----------test multi asset joinsplit--------------" << std::endl;
+    test_multi_asset_joinsplit(js, maas, tree);
+    std::cout << "-----------load account from rocksdb again---------" << std::endl;
+    std::map<uint256, MultiAssetAccount> maas1;
+    ZCIncrementalMerkleTree tree1;
+    load_account_from_db(maas, tree);
+    
 }

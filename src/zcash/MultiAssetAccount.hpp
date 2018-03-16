@@ -1,4 +1,6 @@
 #include <map>
+#include <pair>
+
 #include "utils/uint256.h"
 #include "utils/uint252.h"
 #include "zcash/Note.hpp"
@@ -11,8 +13,9 @@ class MultiAssetAccount {
 public:
     std::map<uint256, uint64_t> asset;
     uint252 a_sk;
-    std::vector<Note> notes;
-
+    // true 代表 未花费，false 代表已花费
+    std::vector<std::pair<Note, bool>> notes;
+    std::map<uint256, IncrementalWitness> note_witnesses;
 
     ADD_SERIALIZE_METHODS;
 
@@ -21,5 +24,6 @@ public:
         READWRITE(asset);
         READWRITE(a_sk);
         READWRITE(notes);
+        READWRITE(note_witnesses);
     }
 };
