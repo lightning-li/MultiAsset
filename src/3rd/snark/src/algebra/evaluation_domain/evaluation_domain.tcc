@@ -35,9 +35,7 @@ std::shared_ptr<evaluation_domain<FieldT> > get_evaluation_domain(const size_t m
     assert(min_size > 1);
     const size_t log_min_size = log2(min_size);
     assert(log_min_size <= (FieldT::s+1));
-    std::cout << "min_size " << min_size << std::endl;
-    std::cout << "log_min_size " << log_min_size << std::endl;
-    std::cout << "FieldT::s+1 " << FieldT::s+1 << std::endl;
+    
     std::shared_ptr<evaluation_domain<FieldT> > result;
     if (min_size == (1u << log_min_size))
     {
@@ -64,7 +62,6 @@ std::shared_ptr<evaluation_domain<FieldT> > get_evaluation_domain(const size_t m
         const size_t big = 1ul<<(log2(min_size)-1);
         const size_t small = min_size - big;
         const size_t rounded_small = (1ul<<log2(small));
-        std::cout << "big " << big << "  small " << small << " rounded_small " << rounded_small << std::endl;
         if (big == rounded_small)
         {
             if (log2(big + rounded_small) < FieldT::s+1)

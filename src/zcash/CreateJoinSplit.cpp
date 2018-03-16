@@ -158,7 +158,7 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
         uint64_t v2 = GetRand(sender_account.asset[id1] - v1);
         uint64_t vpub_old = v1 + v2;
         assert(sender_account.asset[id1] >= vpub_old);
-        sender_account.asset[id1] -= vpub_old;
+        std::next(maas_begin, i)->second.asset[id1] -= vpub_old;
 
         uint64_t vpub_new = 0;
         std::array<uint256, 2> macs;
@@ -288,7 +288,7 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
         uint64_t v2 = GetRand(sender_account.asset[id2] - v1);
         uint64_t vpub_old = v1 + v2;
         assert(sender_account.asset[id2] >= vpub_old);
-        sender_account.asset[id2] -= vpub_old;
+        std::next(maas_begin, i)->second.asset[id2] -= vpub_old;
         uint64_t vpub_new = 0;
         std::array<uint256, 2> macs;
         std::array<uint256, 2> nullifiers;
