@@ -108,9 +108,9 @@ void load_account_from_db(std::map<uint256, MultiAssetAccount>& maas, ZCIncremen
                 std::cout << "transparent asset id " << (iter->first).GetHex() << " value " << iter->second << std::endl; 
             }
 
-            for (auto iter = maas.notes.begin(); iter != maas.notes.end(); ++iter) {
+            for (auto iter = maa.notes.begin(); iter != maa.notes.end(); ++iter) {
                 std::cout << "note asset id " << iter->first.id.GetHex() << " value " << iter->first.value << std::endl;
-                std::cout << "note witness root is " << maas[iter->first.cm()].root() << std::endl; 
+                std::cout << "note witness root is " << maa.note_witnesses[iter->first.cm()].root() << std::endl; 
             }
         }
     }
@@ -123,7 +123,7 @@ void load_account_from_db(std::map<uint256, MultiAssetAccount>& maas, ZCIncremen
 // 1. 1 => n/2+1、n/2+2; 2 => n/2+1、n/2+2 发送 value 为 random(1, 100) MS1coin。以此类推
 // 2. n/2+1 => 1、2；n/2+2 => 1、2 发送 value 为 random(1, 100) MS2coin. 以此类推
 
-bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAccount>& maas, ZCIncrementalMerkleTree& tree;) {
+bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAccount>& maas, ZCIncrementalMerkleTree& tree) {
     
     // 创建验证上下文环境
     auto verifier = libzcash::ProofVerifier::Strict();
@@ -698,7 +698,7 @@ void test_zero_proof(ZCJoinSplit* &js) {
     }
     */
     //test_multi_asset_joinsplit(p);
-    delete p; // not that it matters
+    delete js; // not that it matters
 }
 
 int main(int argc, char **argv)
