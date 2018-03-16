@@ -271,7 +271,37 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
                 std::cout << "decrypt successfully......" << std::endl;
             }
         }
+        std::cout << "-$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" << std::endl;
+        for (auto iter = maas.begin(); iter != maas.end(); ++iter) {
+            auto maa = iter->second;
+            for (auto it = maa.notes.begin(); it != maa.notes.end(); ++it) {
+                if (it->second) {
+                    std::cout << "note commit is " << it->first.cm().GetHex() << " before update " << iter->second.note_witnesses[it->first.cm()].root().GetHex() << std::endl;                    
+                    iter->second.note_witnesses[it->first.cm()].append(commitments[0]);
+                    iter->second.note_witnesses[it->first.cm()].append(commitments[1]);
+                    std::cout << "note commit is " << it->first.cm().GetHex() << " after update " << iter->second.note_witnesses[it->first.cm()].root().GetHex() << std::endl;
+                    std::cout << "**************** " << maas[iter->first].note_witnesses[it->first.cm()].root().GetHex() << std::endl; 
+                }
+            }
+        }
+        std::cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" << std::endl;
     }
+
+    std::cout << "------------------------------------------" << std::endl;
+    for (auto iter = maas.begin(); iter != maas.end(); ++iter) {
+            auto maa = iter->second;
+            for (auto it = maa.notes.begin(); it != maa.notes.end(); ++it) {
+                if (it->second) {
+                    std::cout << "note commit is " << it->first.cm().GetHex() << " before update " << iter->second.note_witnesses[it->first.cm()].root().GetHex() << std::endl;                    
+                    iter->second.note_witnesses[it->first.cm()].append(commitments[0]);
+                    iter->second.note_witnesses[it->first.cm()].append(commitments[1]);
+                    std::cout << "note commit is " << it->first.cm().GetHex() << " after update " << iter->second.note_witnesses[it->first.cm()].root().GetHex() << std::endl;
+                    std::cout << "**************** " << maas[iter->first].note_witnesses[it->first.cm()].root().GetHex() << std::endl; 
+                }
+            }
+    }
+    std::cout << "------------------------------------------" << std::endl;
+
 /*
     for (int i = maas_len / 2; i < maas_len; ++i) {
         
