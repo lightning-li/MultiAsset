@@ -228,10 +228,10 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
             auto maa = iter->second;
             for (auto it = maa.notes.begin(); it != maa.notes.end(); ++it) {
                 if (it->second) {
-                    std::cout << "before update " << iter->second.note_witnesses[it->first.cm()].root().GetHex() << std::endl;                    
+                    std::cout << "note commit is " << it->first.cm().GetHex() << " before update " << iter->second.note_witnesses[it->first.cm()].root().GetHex() << std::endl;                    
                     iter->second.note_witnesses[it->first.cm()].append(commitments[0]);
                     iter->second.note_witnesses[it->first.cm()].append(commitments[1]);
-                    std::cout << "after update " << iter->second.note_witnesses[it->first.cm()].root().GetHex() << std::endl;
+                    std::cout << "note commit is " << it->first.cm().GetHex() << " after update " << iter->second.note_witnesses[it->first.cm()].root().GetHex() << std::endl;
                 }
             }
         }
@@ -241,11 +241,11 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
         maas[recipient_addr1.a_pk].note_witnesses[output_notes[0].cm()] = tree.witness();
         tree.append(commitments[1]);
         maas[recipient_addr1.a_pk].note_witnesses[output_notes[0].cm()].append(commitments[1]);
-        std::cout << "####### root is " << tree.root().GetHex()  << " another root is" <<  maas[recipient_addr1.a_pk].note_witnesses[output_notes[0].cm()].root().GetHex() << std::endl;
+        std::cout << "####### root is " << tree.root().GetHex()  << "note commit is " << output_notes[0].cm().GetHex() << " another root is" <<  maas[recipient_addr1.a_pk].note_witnesses[output_notes[0].cm()].root().GetHex() << std::endl;
 
         maas[recipient_addr2.a_pk].notes.push_back(std::make_pair(output_notes[1], true));
         maas[recipient_addr2.a_pk].note_witnesses[output_notes[1].cm()] = tree.witness();
-        std::cout << "####### root is " << tree.root().GetHex()  << " another root is" <<  maas[recipient_addr2.a_pk].note_witnesses[output_notes[1].cm()].root().GetHex() << std::endl;
+        std::cout << "####### root is " << tree.root().GetHex()  << "note commit is " << output_notes[1].cm().GetHex() << " another root is" <<  maas[recipient_addr2.a_pk].note_witnesses[output_notes[1].cm()].root().GetHex() << std::endl;
 
         // Recipient should decrypt
         // Now the recipient should spend the money again
@@ -361,10 +361,10 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
             auto maa = iter->second;
             for (auto it = maa.notes.begin(); it != maa.notes.end(); ++it) {
                 if (it->second) {
-                    std::cout << "before update " << iter->second.note_witnesses[it->first.cm()].root().GetHex() << std::endl;
+                    std::cout << "note commit is " << it->first.cm().GetHex() << " before update " << iter->second.note_witnesses[it->first.cm()].root().GetHex() << std::endl;
                     iter->second.note_witnesses[it->first.cm()].append(commitments[0]);
                     iter->second.note_witnesses[it->first.cm()].append(commitments[1]);
-                    std::cout << "after update " << iter->second.note_witnesses[it->first.cm()].root().GetHex() << std::endl;
+                    std::cout << "note commit is " << it->first.cm().GetHex() << " after update " << iter->second.note_witnesses[it->first.cm()].root().GetHex() << std::endl;
                 }
             }
         }
@@ -374,10 +374,10 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
         maas[recipient_addr1.a_pk].note_witnesses[output_notes[0].cm()] = tree.witness();
         tree.append(commitments[1]);
         maas[recipient_addr1.a_pk].note_witnesses[output_notes[0].cm()].append(commitments[1]);
-        std::cout << "####### 1 root is " << tree.root().GetHex()  << " another root is" <<  maas[recipient_addr1.a_pk].note_witnesses[output_notes[0].cm()].root().GetHex() << std::endl;
+        std::cout << "####### 1 root is " << tree.root().GetHex()  << "note commit is " << output_notes[0].cm().GetHex() << " another root is" <<  maas[recipient_addr1.a_pk].note_witnesses[output_notes[0].cm()].root().GetHex() << std::endl;
         maas[recipient_addr2.a_pk].notes.push_back(std::make_pair(output_notes[1], true));
         maas[recipient_addr2.a_pk].note_witnesses[output_notes[1].cm()] = tree.witness();
-        std::cout << "####### 2 root is " << tree.root().GetHex()  << " another root is" <<  maas[recipient_addr2.a_pk].note_witnesses[output_notes[1].cm()].root().GetHex() << std::endl;        
+        std::cout << "####### 2 root is " << tree.root().GetHex()  << "note commit is " << output_notes[1].cm().GetHex() << " another root is" <<  maas[recipient_addr2.a_pk].note_witnesses[output_notes[1].cm()].root().GetHex() << std::endl;        
         // Recipient should decrypt
         // Now the recipient should spend the money again
         for (int i = 0; i < 2; ++i) {
