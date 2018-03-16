@@ -3,6 +3,7 @@
 #include "utils/uint252.h"
 #include "zcash/Note.hpp"
 #include "utils/serialize.h"
+#include "Zcash/IncrementalMerkleTree.hpp"
 
 using namespace libzcash;
 
@@ -13,7 +14,7 @@ public:
     uint252 a_sk;
     // true 代表 未花费，false 代表已花费
     std::vector<std::pair<Note, bool>> notes;
-    std::map<uint256, IncrementalWitness> note_witnesses;
+    std::map<uint256, ZCIncrementalWitness> note_witnesses;
 
     ADD_SERIALIZE_METHODS;
 
