@@ -110,7 +110,7 @@ void load_account_from_db(std::map<uint256, MultiAssetAccount>& maas, ZCIncremen
 
             for (auto iter = maa.notes.begin(); iter != maa.notes.end(); ++iter) {
                 std::cout << "note asset id " << iter->first.id.GetHex() << " value " << iter->first.value << std::endl;
-                std::cout << "note witness root is " << maa.note_witnesses[iter->first.cm()].root() << std::endl; 
+                std::cout << "note witness root is " << maa.note_witnesses[iter->first.cm()].root().GetHex() << std::endl; 
             }
         }
     }
@@ -144,7 +144,7 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
 
         SpendingKey recipient_key1 = SpendingKey(std::next(maas_begin, maas_len / 2 + i / 2)->second.a_sk);
         PaymentAddress recipient_addr1 = recipient_key1.address();
-        SpendingKey recipient_key2 = SpendingKey(std::next(maas_begin, maas_len / 2 + i / 2 + 1)->second.z_sk);
+        SpendingKey recipient_key2 = SpendingKey(std::next(maas_begin, maas_len / 2 + i / 2 + 1)->second.a_sk);
         PaymentAddress recipient_addr2 = recipient_key2.address();
 
         // 创建临时公钥，用于与接收方协商出加密传输的对称密钥
@@ -260,21 +260,21 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
             auto decrypted_note = note_pt.note(i == 0 ? recipient_addr1 : recipient_addr2);
 
             if (decrypted_note.value != (i == 0 ? v1 : v2) || decrypted_note.id != id1) {
-                cout << "error...." << endl;
+                std::cout << "error...." << std::endl;
                 return false;
             } else {
-                cout << "decrypt successfully......"
+                std::cout << "decrypt successfully......" << std::endl;
             }
         }
     }
 
     for (int i = maas_len / 2; i < maas_len; ++i) {
         
-        MultiAssetAccount sender_account = (maas_begin + i)->second;
+        MultiAssetAccount sender_account = std::next(maas_begin, i)->second;
 
         SpendingKey recipient_key1 = SpendingKey(std::next(maas_begin, (i-maas_len/2) / 2)->second.a_sk);
         PaymentAddress recipient_addr1 = recipient_key1.address();
-        SpendingKey recipient_key2 = SpendingKey(std::next(maas_begin, (i-maas_len/2) / 2 + 1)->second.z_sk);
+        SpendingKey recipient_key2 = SpendingKey(std::next(maas_begin, (i-maas_len/2) / 2 + 1)->second.a_sk);
         PaymentAddress recipient_addr2 = recipient_key2.address();
 
         // 创建临时公钥，用于与接收方协商出加密传输的对称密钥
@@ -389,10 +389,10 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
             auto decrypted_note = note_pt.note(i == 0 ? recipient_addr1 : recipient_addr2);
 
             if (decrypted_note.value != (i == 0 ? v1 : v2) || decrypted_note.id != id2) {
-                cout << "error...." << endl;
+                std::cout << "error...." << std::endl;
                 return false;
             } else {
-                cout << "decrypt successfully......"
+                std::cout << "decrypt successfully......" << std::endl;
             }
         }
     }
