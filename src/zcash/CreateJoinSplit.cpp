@@ -228,10 +228,10 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
             auto maa = iter->second;
             for (auto it = maa.notes.begin(); it != maa.notes.end(); ++it) {
                 if (it->second) {
-                    std::cout << "before update " << iter->second.note_witnesses[it->first.cm()].root.GetHex() << std::endl;                    
+                    std::cout << "before update " << iter->second.note_witnesses[it->first.cm()].root().GetHex() << std::endl;                    
                     iter->second.note_witnesses[it->first.cm()].append(commitments[0]);
                     iter->second.note_witnesses[it->first.cm()].append(commitments[1]);
-                    std::cout << "after update " << iter->second.note_witnesses[it->first.cm()].root.GetHex() << std::endl;
+                    std::cout << "after update " << iter->second.note_witnesses[it->first.cm()].root().GetHex() << std::endl;
                 }
             }
         }
@@ -359,10 +359,10 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
             auto maa = iter->second;
             for (auto it = maa.notes.begin(); it != maa.notes.end(); ++it) {
                 if (it->second) {
-                    std::cout << "before update " << iter->second.note_witnesses[it->first.cm()].root.GetHex() << std::endl;
+                    std::cout << "before update " << iter->second.note_witnesses[it->first.cm()].root().GetHex() << std::endl;
                     iter->second.note_witnesses[it->first.cm()].append(commitments[0]);
                     iter->second.note_witnesses[it->first.cm()].append(commitments[1]);
-                    std::cout << "after update " << iter->second.note_witnesses[it->first.cm()].root.GetHex() << std::endl;
+                    std::cout << "after update " << iter->second.note_witnesses[it->first.cm()].root().GetHex() << std::endl;
                 }
             }
         }
