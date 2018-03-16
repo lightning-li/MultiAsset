@@ -158,6 +158,8 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
         uint64_t v2 = GetRand(sender_account.asset[id1] - v1);
         uint64_t vpub_old = v1 + v2;
         assert(sender_account.asset[id1] >= vpub_old);
+        sender_account.asset[id1] -= vpub_old;
+
         uint64_t vpub_new = 0;
         std::array<uint256, 2> macs;
         std::array<uint256, 2> nullifiers;
@@ -233,12 +235,12 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
         }
 
         tree.append(commitments[0]);
-        maas[recipient_addr1.a_pk.GetHex()].notes.push_back(output_notes[0]);
+        maas[recipient_addr1.a_pk.GetHex()].notes.push_back(std::make_pair<output_notes[0], true>);
         maas[recipient_addr1.a_pk.GetHex()].note_witnesses[output_notes[0].cm()] = tree.witness();
         tree.append(commitments[1]);
         maas[recipient_addr1.a_pk.GetHex()].note_witnesses[output_notes[0].cm()].append(commitments[1]);
         
-        maas[recipient_addr2.a_pk.GetHex()].notes.push_back(output_notes[1]);
+        maas[recipient_addr2.a_pk.GetHex()].notes.push_back(std::make_pair<output_notes[1], true>);
         maas[recipient_addr1.a_pk.GetHex()].note_witnesses[output_notes[1].cm()] = tree.witness();
     
         // Recipient should decrypt
@@ -285,7 +287,8 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
         uint64_t v1 = GetRand(sender_account.asset[id2]);
         uint64_t v2 = GetRand(sender_account.asset[id2] - v1);
         uint64_t vpub_old = v1 + v2;
-        assert(sender_account.asset[id1] >= vpub_old);
+        assert(sender_account.asset[id2] >= vpub_old);
+        sender_account.asset[id2] -= vpub_old;
         uint64_t vpub_new = 0;
         std::array<uint256, 2> macs;
         std::array<uint256, 2> nullifiers;
@@ -361,12 +364,12 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
         }
 
         tree.append(commitments[0]);
-        maas[recipient_addr1.a_pk.GetHex()].notes.push_back(output_notes[0]);
+        maas[recipient_addr1.a_pk.GetHex()].notes.push_back(std::make_pair<output_notes[0], true>);
         maas[recipient_addr1.a_pk.GetHex()].note_witnesses[output_notes[0].cm()] = tree.witness();
         tree.append(commitments[1]);
         maas[recipient_addr1.a_pk.GetHex()].note_witnesses[output_notes[0].cm()].append(commitments[1]);
         
-        maas[recipient_addr2.a_pk.GetHex()].notes.push_back(output_notes[1]);
+        maas[recipient_addr2.a_pk.GetHex()].notes.push_back(std::make_pair<output_notes[1], true>);
         maas[recipient_addr1.a_pk.GetHex()].note_witnesses[output_notes[1].cm()] = tree.witness();
         
         // Recipient should decrypt

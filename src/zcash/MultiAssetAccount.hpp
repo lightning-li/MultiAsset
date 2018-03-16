@@ -1,6 +1,4 @@
 #include <map>
-#include <pair>
-
 #include "utils/uint256.h"
 #include "utils/uint252.h"
 #include "zcash/Note.hpp"
