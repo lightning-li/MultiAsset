@@ -406,7 +406,7 @@ uint256 JoinSplit<NumInputs, NumOutputs>::h_sig(
     return output;
 }
 
-Note JSOutput::note(const uint252& phi, const uint256& r, size_t i, const uint256& h_sig) const {
+Note JSOutput::note(const uint252& phi, const uint256& r, size_t i, const uint256& h_sig, uint256& id) const {
     uint256 rho = PRF_rho(phi, i, h_sig);
 
     return Note(addr.a_pk, value, rho, r, id);

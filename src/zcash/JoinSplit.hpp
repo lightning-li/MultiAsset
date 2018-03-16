@@ -42,7 +42,7 @@ public:
     JSOutput(uint256 id);
     JSOutput(PaymentAddress addr, uint64_t value, uint256 id) : addr(addr), value(value), id(id) { }
 
-    Note note(const uint252& phi, const uint256& r, size_t i, const uint256& h_sig) const;
+    Note note(const uint252& phi, const uint256& r, size_t i, const uint256& h_sig, uint256& id) const;
 };
 
 template<size_t NumInputs, size_t NumOutputs>
