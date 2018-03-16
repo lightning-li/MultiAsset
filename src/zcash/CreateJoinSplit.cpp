@@ -110,7 +110,7 @@ void load_account_from_db(std::map<uint256, MultiAssetAccount>& maas, ZCIncremen
 
             for (auto iter = maa.notes.begin(); iter != maa.notes.end(); ++iter) {
                 std::cout << "note asset id " << iter->first.id.GetHex() << " value " << iter->first.value << std::endl;
-                std::cout << "note witness root is " << maa.note_witnesses[iter->first.cm()].root().GetHex() << std::endl; 
+                std::cout << "note commitment is " <<  iter->first.cm().GetHex() << "  note witness root is " << maa.note_witnesses[iter->first.cm()].root().GetHex() << std::endl; 
             }
         }
     }
