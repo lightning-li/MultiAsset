@@ -232,6 +232,7 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
                     iter->second.note_witnesses[it->first.cm()].append(commitments[0]);
                     iter->second.note_witnesses[it->first.cm()].append(commitments[1]);
                     std::cout << "note commit is " << it->first.cm().GetHex() << " after update " << iter->second.note_witnesses[it->first.cm()].root().GetHex() << std::endl;
+                    std::cout << "**************** " << maas[iter->first].note_witnesses[it->first.cm()].root().GetHex() << std::endl; 
                 }
             }
         }
