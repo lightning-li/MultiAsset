@@ -271,7 +271,7 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
             }
         }
     }
-
+/*
     for (int i = maas_len / 2; i < maas_len; ++i) {
         
         MultiAssetAccount sender_account = std::next(maas_begin, i)->second;
@@ -402,7 +402,7 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
             }
         }
     }
-
+    */
     // write tree to rocksdb
     rocksdb::WriteBatch batch;
     string tree_key = "0x0000000000000000000000000000000000000000000000000000000000000000";
