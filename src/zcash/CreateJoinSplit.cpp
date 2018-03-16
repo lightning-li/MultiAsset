@@ -103,7 +103,7 @@ void load_account_from_db(std::map<uint256, MultiAssetAccount>& maas, ZCIncremen
             ss >> maa;
             maas[uint256S(it->key().ToString())] = maa;
             //std::cout << "private key is " << maa.a_sk.inner().GetHex() << std::endl;
-
+            std::cout << it->key().ToString() << std::endl;
             for (auto iter = maa.asset.begin(); iter != maa.asset.end(); ++iter) {
                 std::cout << "transparent asset id " << (iter->first).GetHex() << " value " << iter->second << std::endl; 
             }
@@ -698,7 +698,7 @@ void test_zero_proof(ZCJoinSplit* &js) {
     }
     */
     //test_multi_asset_joinsplit(p);
-    delete js; // not that it matters
+    //delete js; // not that it matters
 }
 
 int main(int argc, char **argv)
