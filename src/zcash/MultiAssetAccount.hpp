@@ -3,7 +3,7 @@
 #include "utils/uint252.h"
 #include "zcash/Note.hpp"
 #include "utils/serialize.h"
-#include "Zcash/IncrementalMerkleTree.hpp"
+#include "zcash/IncrementalMerkleTree.hpp"
 
 using namespace libzcash;
 
