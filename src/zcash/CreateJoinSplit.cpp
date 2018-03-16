@@ -241,7 +241,7 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
         maas[recipient_addr1.a_pk].note_witnesses[output_notes[0].cm()].append(commitments[1]);
         
         maas[recipient_addr2.a_pk].notes.push_back(std::make_pair(output_notes[1], true));
-        maas[recipient_addr1.a_pk].note_witnesses[output_notes[1].cm()] = tree.witness();
+        maas[recipient_addr2.a_pk].note_witnesses[output_notes[1].cm()] = tree.witness();
     
         // Recipient should decrypt
         // Now the recipient should spend the money again
@@ -370,7 +370,7 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
         maas[recipient_addr1.a_pk].note_witnesses[output_notes[0].cm()].append(commitments[1]);
         
         maas[recipient_addr2.a_pk].notes.push_back(std::make_pair(output_notes[1], true));
-        maas[recipient_addr1.a_pk].note_witnesses[output_notes[1].cm()] = tree.witness();
+        maas[recipient_addr2.a_pk].note_witnesses[output_notes[1].cm()] = tree.witness();
         
         // Recipient should decrypt
         // Now the recipient should spend the money again
