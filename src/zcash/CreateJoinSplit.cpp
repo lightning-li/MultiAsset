@@ -235,12 +235,12 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
         }
 
         tree.append(commitments[0]);
-        maas[recipient_addr1.a_pk].notes.push_back(std::make_pair<Note, bool>(output_notes[0], true));
+        maas[recipient_addr1.a_pk].notes.push_back(std::make_pair(output_notes[0], true));
         maas[recipient_addr1.a_pk].note_witnesses[output_notes[0].cm()] = tree.witness();
         tree.append(commitments[1]);
         maas[recipient_addr1.a_pk].note_witnesses[output_notes[0].cm()].append(commitments[1]);
         
-        maas[recipient_addr2.a_pk].notes.push_back(std::make_pair<Note, bool>(output_notes[1], true));
+        maas[recipient_addr2.a_pk].notes.push_back(std::make_pair(output_notes[1], true));
         maas[recipient_addr1.a_pk].note_witnesses[output_notes[1].cm()] = tree.witness();
     
         // Recipient should decrypt
@@ -259,7 +259,7 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
 
             auto decrypted_note = note_pt.note(i == 0 ? recipient_addr1 : recipient_addr2);
 
-            if (decrypted_note.value != (i == 0 ? v1 : v2) || decrypted_note.id.GetHex() != id2) {
+            if (decrypted_note.value != (i == 0 ? v1 : v2) || decrypted_note.id != id1) {
                 cout << "error...." << endl;
                 return false;
             } else {
@@ -364,12 +364,12 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
         }
 
         tree.append(commitments[0]);
-        maas[recipient_addr1.a_pk].notes.push_back(std::make_pair<Note, bool>(output_notes[0], true));
+        maas[recipient_addr1.a_pk].notes.push_back(std::make_pair(output_notes[0], true));
         maas[recipient_addr1.a_pk].note_witnesses[output_notes[0].cm()] = tree.witness();
         tree.append(commitments[1]);
         maas[recipient_addr1.a_pk].note_witnesses[output_notes[0].cm()].append(commitments[1]);
         
-        maas[recipient_addr2.a_pk].notes.push_back(std::make_pair<Note, bool>(output_notes[1], true));
+        maas[recipient_addr2.a_pk].notes.push_back(std::make_pair(output_notes[1], true));
         maas[recipient_addr1.a_pk].note_witnesses[output_notes[1].cm()] = tree.witness();
         
         // Recipient should decrypt
@@ -388,7 +388,7 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
 
             auto decrypted_note = note_pt.note(i == 0 ? recipient_addr1 : recipient_addr2);
 
-            if (decrypted_note.value != (i == 0 ? v1 : v2) || decrypted_note.id.GetHex() != id2) {
+            if (decrypted_note.value != (i == 0 ? v1 : v2) || decrypted_note.id != id2) {
                 cout << "error...." << endl;
                 return false;
             } else {
