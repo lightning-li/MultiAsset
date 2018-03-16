@@ -228,8 +228,8 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
             auto maa = iter->second;
             for (auto it = maa.notes.begin(); it != maa.notes.end(); ++it) {
                 if (it->second) {
-                    maa.note_witnesses[it->first.cm()].append(commitments[0]);
-                    maa.note_witnesses[it->first.cm()].append(commitments[1]);
+                    iter->second.note_witnesses[it->first.cm()].append(commitments[0]);
+                    iter->second.note_witnesses[it->first.cm()].append(commitments[1]);
                 }
             }
         }
@@ -357,8 +357,8 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
             auto maa = iter->second;
             for (auto it = maa.notes.begin(); it != maa.notes.end(); ++it) {
                 if (it->second) {
-                    maa.note_witnesses[it->first.cm()].append(commitments[0]);
-                    maa.note_witnesses[it->first.cm()].append(commitments[1]);
+                    iter->second.note_witnesses[it->first.cm()].append(commitments[0]);
+                    iter->second.note_witnesses[it->first.cm()].append(commitments[1]);
                 }
             }
         }
