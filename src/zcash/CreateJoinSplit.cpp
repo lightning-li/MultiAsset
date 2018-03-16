@@ -140,11 +140,11 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
 
     for (int i = 0; i < maas_len / 2; ++i) {
         
-        MultiAssetAccount sender_account = (maas_begin + i)->second;
+        MultiAssetAccount sender_account = std::next(maas_begin, i)->second;
 
-        SpendingKey recipient_key1 = SpendingKey((maas_begin + maas_len / 2 + i / 2)->second.a_sk);
+        SpendingKey recipient_key1 = SpendingKey(std::next(maas_begin, maas_len / 2 + i / 2)->second.a_sk);
         PaymentAddress recipient_addr1 = recipient_key1.address();
-        SpendingKey recipient_key2 = SpendingKey((maas_begin + maas_len / 2 + i / 2 + 1)->second.z_sk);
+        SpendingKey recipient_key2 = SpendingKey(std::next(maas_begin, maas_len / 2 + i / 2 + 1)->second.z_sk);
         PaymentAddress recipient_addr2 = recipient_key2.address();
 
         // 创建临时公钥，用于与接收方协商出加密传输的对称密钥
@@ -272,9 +272,9 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
         
         MultiAssetAccount sender_account = (maas_begin + i)->second;
 
-        SpendingKey recipient_key1 = SpendingKey((maas_begin + (i-maas_len/2) / 2)->second.a_sk);
+        SpendingKey recipient_key1 = SpendingKey(std::next(maas_begin, (i-maas_len/2) / 2)->second.a_sk);
         PaymentAddress recipient_addr1 = recipient_key1.address();
-        SpendingKey recipient_key2 = SpendingKey((maas_begin + (i-maas_len/2) / 2 + 1)->second.z_sk);
+        SpendingKey recipient_key2 = SpendingKey(std::next(maas_begin, (i-maas_len/2) / 2 + 1)->second.z_sk);
         PaymentAddress recipient_addr2 = recipient_key2.address();
 
         // 创建临时公钥，用于与接收方协商出加密传输的对称密钥
@@ -408,7 +408,7 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
     for (auto iter = maas.begin(); iter != maas.end(); ++iter) {
         CDataStream cd(SER_NETWORK, PROTOCOL_VERSION);
         cd << iter->second;
-        batch->Put(rocksdb::WriteOptions(), iter->first.GetHex(), cd.str());
+        batch.Put(rocksdb::WriteOptions(), iter->first.GetHex(), cd.str());
     }
     status = db->Write(rocksdb::WriteOptions(), &batch);
     assert(status.ok());
