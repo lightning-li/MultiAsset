@@ -196,7 +196,7 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
             vpub_old,
             vpub_new,
             rt,
-            id
+            id1
         );
         gettimeofday(&end, NULL);
         std::cout << "---------------generate proof needs " << (1000000 * (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec)) << " microseconds" << std::endl;
@@ -213,7 +213,7 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
             vpub_old,
             vpub_new,
             rt,
-            id
+            id1
         )) {
             std::cout << "verify passed......" << std::endl;
         } else {
@@ -235,13 +235,13 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
         }
 
         tree.append(commitments[0]);
-        maas[recipient_addr1.a_pk.GetHex()].notes.push_back(std::make_pair<Note, bool>(output_notes[0], true));
-        maas[recipient_addr1.a_pk.GetHex()].note_witnesses[output_notes[0].cm()] = tree.witness();
+        maas[recipient_addr1.a_pk].notes.push_back(std::make_pair<Note, bool>(output_notes[0], true));
+        maas[recipient_addr1.a_pk].note_witnesses[output_notes[0].cm()] = tree.witness();
         tree.append(commitments[1]);
-        maas[recipient_addr1.a_pk.GetHex()].note_witnesses[output_notes[0].cm()].append(commitments[1]);
+        maas[recipient_addr1.a_pk].note_witnesses[output_notes[0].cm()].append(commitments[1]);
         
-        maas[recipient_addr2.a_pk.GetHex()].notes.push_back(std::make_pair<Note, bool>(output_notes[1], true));
-        maas[recipient_addr1.a_pk.GetHex()].note_witnesses[output_notes[1].cm()] = tree.witness();
+        maas[recipient_addr2.a_pk].notes.push_back(std::make_pair<Note, bool>(output_notes[1], true));
+        maas[recipient_addr1.a_pk].note_witnesses[output_notes[1].cm()] = tree.witness();
     
         // Recipient should decrypt
         // Now the recipient should spend the money again
@@ -325,7 +325,7 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
             vpub_old,
             vpub_new,
             rt,
-            id
+            id2
         );
         gettimeofday(&end, NULL);
         std::cout << "---------------generate proof needs " << (1000000 * (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec)) << " microseconds" << std::endl;
@@ -342,7 +342,7 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
             vpub_old,
             vpub_new,
             rt,
-            id
+            id2
         )) {
             std::cout << "verify passed......" << std::endl;
         } else {
@@ -364,13 +364,13 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
         }
 
         tree.append(commitments[0]);
-        maas[recipient_addr1.a_pk.GetHex()].notes.push_back(std::make_pair<Note, bool>(output_notes[0], true));
-        maas[recipient_addr1.a_pk.GetHex()].note_witnesses[output_notes[0].cm()] = tree.witness();
+        maas[recipient_addr1.a_pk].notes.push_back(std::make_pair<Note, bool>(output_notes[0], true));
+        maas[recipient_addr1.a_pk].note_witnesses[output_notes[0].cm()] = tree.witness();
         tree.append(commitments[1]);
-        maas[recipient_addr1.a_pk.GetHex()].note_witnesses[output_notes[0].cm()].append(commitments[1]);
+        maas[recipient_addr1.a_pk].note_witnesses[output_notes[0].cm()].append(commitments[1]);
         
-        maas[recipient_addr2.a_pk.GetHex()].notes.push_back(std::make_pair<Note, bool>(output_notes[1], true));
-        maas[recipient_addr1.a_pk.GetHex()].note_witnesses[output_notes[1].cm()] = tree.witness();
+        maas[recipient_addr2.a_pk].notes.push_back(std::make_pair<Note, bool>(output_notes[1], true));
+        maas[recipient_addr1.a_pk].note_witnesses[output_notes[1].cm()] = tree.witness();
         
         // Recipient should decrypt
         // Now the recipient should spend the money again
