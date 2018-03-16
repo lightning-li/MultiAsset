@@ -402,13 +402,13 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
     string tree_key = "0x0000000000000000000000000000000000000000000000000000000000000000";
     CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
     ss << tree;
-    batch.Put(rocksdb::WriteOptions(), tree_key, ss.str());
+    batch.Put(tree_key, ss.str());
 
     // write account into rocksdb
     for (auto iter = maas.begin(); iter != maas.end(); ++iter) {
         CDataStream cd(SER_NETWORK, PROTOCOL_VERSION);
         cd << iter->second;
-        batch.Put(rocksdb::WriteOptions(), iter->first.GetHex(), cd.str());
+        batch.Put(iter->first.GetHex(), cd.str());
     }
     status = db->Write(rocksdb::WriteOptions(), &batch);
     assert(status.ok());
