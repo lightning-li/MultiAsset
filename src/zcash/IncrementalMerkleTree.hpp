@@ -5,6 +5,7 @@
 //#include <boost/optional.hpp>
 //#include <boost/static_assert.hpp>
 #include <array>
+#include <iostream>
 
 #include "utils/uint256.h"
 #include "utils/serialize.h"
