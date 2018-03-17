@@ -224,6 +224,7 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
         }
         
         // update account witness
+        /*
         for (auto iter = maas.begin(); iter != maas.end(); ++iter) {
             auto maa = iter->second;
             for (auto it = maa.notes.begin(); it != maa.notes.end(); ++it) {
@@ -236,6 +237,7 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
                 }
             }
         }
+        */
 
 std::cout << "-$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" << std::endl;
         for (auto iter = maas.begin(); iter != maas.end(); ++iter) {
