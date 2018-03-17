@@ -83,7 +83,7 @@ public:
         }
         for (auto iter = parents.begin(); iter != parents.end(); ++iter) {
             if (*iter) {
-                parents.push_back(make_shared<Hash>(**iter));
+                parents.push_back(std::make_shared<Hash>(*(*iter)));
             } else {
                 parents.push_back(nullptr);
             }
