@@ -71,7 +71,7 @@ public:
     static_assert(Depth >= 1, "Depth is not greater than 1");
     IncrementalMerkleTree() { }
     IncrementalMerkleTree(const IncrementalMerkleTree& inc) {
-        std::cout << "IncrementalMerkleTree copy constructor................................." << std::endl;
+        //std::cout << "IncrementalMerkleTree copy constructor................................." << std::endl;
         if (inc.left) {
             left = std::make_shared<Hash>(*inc.left);
         } else {
@@ -92,7 +92,7 @@ public:
         }
     }
     IncrementalMerkleTree& operator=(const IncrementalMerkleTree& inc) {
-        std::cout << "IncrementalMerkleTree assign constructor................................." << std::endl;
+        //std::cout << "IncrementalMerkleTree assign constructor................................." << std::endl;
         if (inc.left) {
             left = std::make_shared<Hash>(*inc.left);
         } else {
@@ -185,7 +185,7 @@ public:
     // Required for Unserialize()
     IncrementalWitness() {}
     IncrementalWitness(const IncrementalWitness& inw) {
-        std::cout  << "IncrementalWitness copy constructor.................." << std::endl;
+        //std::cout  << "IncrementalWitness copy constructor.................." << std::endl;
         tree = inw.tree;
         filled = inw.filled;
         if (inw.cursor) {
@@ -196,7 +196,7 @@ public:
         cursor_depth = inw.cursor_depth;
     }
     IncrementalWitness& operator=(const IncrementalWitness& inw) {
-        std::cout  << "IncrementalWitness assign constructor.................." << std::endl;
+        //std::cout  << "IncrementalWitness assign constructor.................." << std::endl;
         tree = inw.tree;
         filled = inw.filled;
         if (inw.cursor) {

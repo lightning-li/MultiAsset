@@ -229,88 +229,19 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
             auto maa = iter->second;
             for (auto it = maa.notes.begin(); it != maa.notes.end(); ++it) {
                 if (it->second) {
-                    std::cout << "note commit is " << it->first.cm().GetHex() << " before update " << iter->second.note_witnesses[it->first.cm()].root().GetHex() << std::endl;                    
                     iter->second.note_witnesses[it->first.cm()].append(commitments[0]);
                     iter->second.note_witnesses[it->first.cm()].append(commitments[1]);
-                    std::cout << "note commit is " << it->first.cm().GetHex() << " after update " << iter->second.note_witnesses[it->first.cm()].root().GetHex() << std::endl;
-                    std::cout << "**************** " << maas[iter->first].note_witnesses[it->first.cm()].root().GetHex() << std::endl; 
                 }
             }
         }
         
-
-    std::cout << "-$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" << std::endl;
-        for (auto iter = maas.begin(); iter != maas.end(); ++iter) {
-            auto maa = iter->second;
-            for (auto it = maa.notes.begin(); it != maa.notes.end(); ++it) {
-                if (it->second) {
-                    
-                    std::cout << "note commit is " << it->first.cm().GetHex() << " update " << iter->second.note_witnesses[it->first.cm()].root().GetHex() << std::endl;
-                    std::cout << "**************** " << maas[iter->first].note_witnesses[it->first.cm()].root().GetHex() << std::endl; 
-                }
-            }
-        }
-        std::cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" << std::endl;
         tree.append(commitments[0]);
-        std::cout << "+++++++++++++++++++++" << std::endl;
-        for (auto iter = maas.begin(); iter != maas.end(); ++iter) {
-            auto maa = iter->second;
-            for (auto it = maa.notes.begin(); it != maa.notes.end(); ++it) {
-                if (it->second) {
-                    
-                    std::cout << "note commit is " << it->first.cm().GetHex() << " update " << iter->second.note_witnesses[it->first.cm()].root().GetHex() << std::endl;
-                    std::cout << "**************** " << maas[iter->first].note_witnesses[it->first.cm()].root().GetHex() << std::endl; 
-                }
-            }
-        }
-        std::cout << "+++++++++++++++++++++" << std::endl;
         maas[recipient_addr1.a_pk].notes.push_back(std::make_pair(output_notes[0], true));
-        
         maas[recipient_addr1.a_pk].note_witnesses[output_notes[0].cm()] = tree.witness();
-        std::cout << "111111111111111111 root " << tree.root().GetHex() << "  and " << maas[recipient_addr1.a_pk].note_witnesses[output_notes[0].cm()].root().GetHex() << std::endl;
-        std::cout << "+++++++++++++++++++++_--------------" << std::endl;
-        for (auto iter = maas.begin(); iter != maas.end(); ++iter) {
-            auto maa = iter->second;
-            for (auto it = maa.notes.begin(); it != maa.notes.end(); ++it) {
-                if (it->second) {
-                    
-                    std::cout << "note commit is " << it->first.cm().GetHex() << " update " << iter->second.note_witnesses[it->first.cm()].root().GetHex() << std::endl;
-                    std::cout << "**************** " << maas[iter->first].note_witnesses[it->first.cm()].root().GetHex() << std::endl; 
-                }
-            }
-        }
-        std::cout << "+++++++++++++++++++++--------------------" << std::endl;
-        tree.append(commitments[1]);
-        std::cout << "-------------+++++++++++++++++++++_--------------" << std::endl;
-        for (auto iter = maas.begin(); iter != maas.end(); ++iter) {
-            auto maa = iter->second;
-            for (auto it = maa.notes.begin(); it != maa.notes.end(); ++it) {
-                if (it->second) {
-                    
-                    std::cout << "note commit is " << it->first.cm().GetHex() << " update " << iter->second.note_witnesses[it->first.cm()].root().GetHex() << std::endl;
-                    std::cout << "**************** " << maas[iter->first].note_witnesses[it->first.cm()].root().GetHex() << std::endl; 
-                }
-            }
-        }
-        std::cout << "--------------+++++++++++++++++++++--------------------" << std::endl;
+        tree.append(commitments[1]);  
         maas[recipient_addr1.a_pk].note_witnesses[output_notes[0].cm()].append(commitments[1]);
-        std::cout << "####### root is " << tree.root().GetHex()  << "note commit is " << output_notes[0].cm().GetHex() << " another root is" <<  maas[recipient_addr1.a_pk].note_witnesses[output_notes[0].cm()].root().GetHex() << std::endl;
-
-std::cout << "+++++++++++++$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" << std::endl;
-        for (auto iter = maas.begin(); iter != maas.end(); ++iter) {
-            auto maa = iter->second;
-            for (auto it = maa.notes.begin(); it != maa.notes.end(); ++it) {
-                if (it->second) {
-                    
-                    std::cout << "note commit is " << it->first.cm().GetHex() << " update " << iter->second.note_witnesses[it->first.cm()].root().GetHex() << std::endl;
-                    std::cout << "**************** " << maas[iter->first].note_witnesses[it->first.cm()].root().GetHex() << std::endl; 
-                }
-            }
-        }
-std::cout << "+++++++++++++++++$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" << std::endl;
         maas[recipient_addr2.a_pk].notes.push_back(std::make_pair(output_notes[1], true));
         maas[recipient_addr2.a_pk].note_witnesses[output_notes[1].cm()] = tree.witness();
-        std::cout << "####### root is " << tree.root().GetHex()  << "note commit is " << output_notes[1].cm().GetHex() << " another root is" <<  maas[recipient_addr2.a_pk].note_witnesses[output_notes[1].cm()].root().GetHex() << std::endl;
 
         // Recipient should decrypt
         // Now the recipient should spend the money again
@@ -335,33 +266,11 @@ std::cout << "+++++++++++++++++$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" << std::en
                 std::cout << "decrypt successfully......" << std::endl;
             }
         }
-        std::cout << "-$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" << std::endl;
-        for (auto iter = maas.begin(); iter != maas.end(); ++iter) {
-            auto maa = iter->second;
-            for (auto it = maa.notes.begin(); it != maa.notes.end(); ++it) {
-                if (it->second) {
-                    
-                    std::cout << "note commit is " << it->first.cm().GetHex() << " update " << iter->second.note_witnesses[it->first.cm()].root().GetHex() << std::endl;
-                    std::cout << "**************** " << maas[iter->first].note_witnesses[it->first.cm()].root().GetHex() << std::endl; 
-                }
-            }
-        }
-        std::cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" << std::endl;
+        
     }
 
-    std::cout << "------------------------------------------" << std::endl;
-    for (auto iter = maas.begin(); iter != maas.end(); ++iter) {
-            auto maa = iter->second;
-            for (auto it = maa.notes.begin(); it != maa.notes.end(); ++it) {
-                if (it->second) {
-                    std::cout << "note commit is " << it->first.cm().GetHex() << "update " << iter->second.note_witnesses[it->first.cm()].root().GetHex() << std::endl;
-                    std::cout << "**************** " << maas[iter->first].note_witnesses[it->first.cm()].root().GetHex() << std::endl; 
-                }
-            }
-    }
-    std::cout << "------------------------------------------" << std::endl;
 
-/*
+
     for (int i = maas_len / 2; i < maas_len; ++i) {
         
         MultiAssetAccount sender_account = std::next(maas_begin, i)->second;
@@ -451,10 +360,8 @@ std::cout << "+++++++++++++++++$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" << std::en
             auto maa = iter->second;
             for (auto it = maa.notes.begin(); it != maa.notes.end(); ++it) {
                 if (it->second) {
-                    std::cout << "note commit is " << it->first.cm().GetHex() << " before update " << iter->second.note_witnesses[it->first.cm()].root().GetHex() << std::endl;
                     iter->second.note_witnesses[it->first.cm()].append(commitments[0]);
                     iter->second.note_witnesses[it->first.cm()].append(commitments[1]);
-                    std::cout << "note commit is " << it->first.cm().GetHex() << " after update " << iter->second.note_witnesses[it->first.cm()].root().GetHex() << std::endl;
                 }
             }
         }
@@ -464,10 +371,8 @@ std::cout << "+++++++++++++++++$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" << std::en
         maas[recipient_addr1.a_pk].note_witnesses[output_notes[0].cm()] = tree.witness();
         tree.append(commitments[1]);
         maas[recipient_addr1.a_pk].note_witnesses[output_notes[0].cm()].append(commitments[1]);
-        std::cout << "####### 1 root is " << tree.root().GetHex()  << "note commit is " << output_notes[0].cm().GetHex() << " another root is" <<  maas[recipient_addr1.a_pk].note_witnesses[output_notes[0].cm()].root().GetHex() << std::endl;
         maas[recipient_addr2.a_pk].notes.push_back(std::make_pair(output_notes[1], true));
         maas[recipient_addr2.a_pk].note_witnesses[output_notes[1].cm()] = tree.witness();
-        std::cout << "####### 2 root is " << tree.root().GetHex()  << "note commit is " << output_notes[1].cm().GetHex() << " another root is" <<  maas[recipient_addr2.a_pk].note_witnesses[output_notes[1].cm()].root().GetHex() << std::endl;        
         // Recipient should decrypt
         // Now the recipient should spend the money again
         for (int i = 0; i < 2; ++i) {
@@ -492,7 +397,7 @@ std::cout << "+++++++++++++++++$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" << std::en
             }
         }
     }
-    */
+    
     // write tree to rocksdb
     rocksdb::WriteBatch batch;
     string tree_key = "0x0000000000000000000000000000000000000000000000000000000000000000";
