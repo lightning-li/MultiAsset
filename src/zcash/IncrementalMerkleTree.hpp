@@ -70,6 +70,7 @@ public:
     static_assert(Depth >= 1, "Depth is not greater than 1");
     IncrementalMerkleTree() { }
     IncrementalMerkleTree(const IncrementalMerkleTree& inc) {
+        std::cout << "IncrementalMerkleTree copy constructor................................." << std::endl;
         if (inc.left) {
             left = std::make_shared<Hash>(*inc.left);
         } else {
@@ -88,6 +89,28 @@ public:
                 parents.push_back(nullptr);
             }
         }
+    }
+    IncrementalMerkleTree& operator=(const IncrementalMerkleTree& inc) {
+        std::cout << "IncrementalMerkleTree assign constructor................................." << std::endl;
+        if (inc.left) {
+            left = std::make_shared<Hash>(*inc.left);
+        } else {
+            left = nullptr;
+        }
+
+        if (inc.right) {
+            right = std::make_shared<Hash>(*inc.right);
+        } else {
+            right = nullptr;
+        }
+        for (auto iter = parents.begin(); iter != parents.end(); ++iter) {
+            if (*iter) {
+                parents.push_back(std::make_shared<Hash>(*(*iter)));
+            } else {
+                parents.push_back(nullptr);
+            }
+        }
+        return *this;
     }
     size_t DynamicMemoryUsage() const {
         return 32 + // left
