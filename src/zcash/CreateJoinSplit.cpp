@@ -685,7 +685,7 @@ void test_multi_asset_transfer(ZCJoinSplit* js, std::map<uint256, MultiAssetAcco
         MultiAssetAccount sender_account = std::next(maas_begin, i)->second;
         Note asset_old1 = sender_account.notes[0].first;
         assert(sender_account.notes[0].second);
-        Note asset_old2 = sender_account.notes[1];
+        Note asset_old2 = sender_account.notes[1].first;
         assert(sender_account.notes[1].second);
 
         std::array<uint256, 2> macs;
@@ -699,16 +699,17 @@ void test_multi_asset_transfer(ZCJoinSplit* js, std::map<uint256, MultiAssetAcco
         JSInput js_input1(sender_account.note_witnesses[asset_old1.cm()], asset_old1, SpendingKey(sender_account.a_sk));
         JSInput js_input2(sender_account.note_witnesses[asset_old2.cm()], asset_old2, SpendingKey(sender_account.a_sk));
 
-        std::array<JSInput, 2> inputs;
-        inputs[0] = js_input1;
-        inputs[1] = js_input2;
-
-        std::array<JSOutput, 2> outputs = {
-            JSOutput(recipient_addr1, asset_old2.value),
-            JSOutput(recipient_addr2, asset_old1.value)
+        std::array<JSInput, 2> inputs = {
+            js_input1,
+            js_input2
         };
 
-        std::array<JSOutput, 2> output_notes;
+        std::array<JSOutput, 2> outputs = {
+            JSOutput(recipient_addr1, asset_old2.value, id2),
+            JSOutput(recipient_addr2, asset_old1.value, id2)
+        };
+
+        std::array<Note, 2> output_notes;
         gettimeofday(&start, NULL);
         // Perform the proof
         proof = js->prove(
@@ -761,7 +762,6 @@ void test_multi_asset_transfer(ZCJoinSplit* js, std::map<uint256, MultiAssetAcco
             }
         }
 
-        tree.append(comments[0]);
         tree.append(commitments[0]);
         maas[recipient_addr1.a_pk].notes.push_back(std::make_pair(output_notes[0], true));
         maas[recipient_addr1.a_pk].note_witnesses[output_notes[0].cm()] = tree.witness();
@@ -785,7 +785,7 @@ void test_multi_asset_transfer(ZCJoinSplit* js, std::map<uint256, MultiAssetAcco
 
             auto decrypted_note = note_pt.note(i == 0 ? recipient_addr1 : recipient_addr2);
 
-            if (decrypted_note.value != (i == 0 ? v1 : v2) || decrypted_note.id != id2) {
+            if (decrypted_note.value != (i == 0 ? asset_old2.value : asset_old1.value) || decrypted_note.id != id2) {
                 std::cout << "error...." << std::endl;
                 return false;
             } else {
@@ -882,8 +882,10 @@ int main(int argc, char **argv)
     load_account_from_db(maas, tree);
     ZCJoinSplit* js;
     test_zero_proof(js);
-    std::cout << "-----------test multi asset joinsplit--------------" << std::endl;
-    test_multi_asset_joinsplit(js, maas, tree);
+    //std::cout << "-----------test multi asset joinsplit--------------" << std::endl;
+    //test_multi_asset_joinsplit(js, maas, tree);
+    std::cout << "#############test multi asset transfer################" << std::endl;
+    test_multi_asset_transfer(js, maas, tree);
     std::cout << "-----------load account from rocksdb again---------" << std::endl;
     std::map<uint256, MultiAssetAccount> maas1;
     ZCIncrementalMerkleTree tree1;
