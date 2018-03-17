@@ -48,7 +48,7 @@ void initial_multi_asset() {
     uint256 id2 = uint256S("0x0000000000000000000000000000000000000000000000000000000000000002");
     uint256 a_pk;
 
-    for (int i = 0; i < 4; ++i) {
+    for (int i = 0; i < 100; ++i) {
         a_sk = random_uint252();
         a_pk = SpendingKey(a_sk).address().a_pk;
         string a_pk_hex = a_pk.GetHex();
@@ -415,73 +415,7 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
     status = db->Write(rocksdb::WriteOptions(), &batch);
     assert(status.ok());
     delete db;
-    /*
-    // Insert the commitments from the last tx into the tree
-    tree.append(commitments[0]);
-    auto witness_recipient = tree.witness();
-    tree.append(commitments[1]);
-    witness_recipient.append(commitments[1]);
-    vpub_old = 0;
-    vpub_new = 1;
-    rt = tree.root();
-    pubKeyHash = random_uint256();
-
-    {
-        std::array<JSInput, 2> inputs = {
-            JSInput(), // dummy input
-            JSInput(witness_recipient, decrypted_note, recipient_key)
-        };
-
-        SpendingKey second_recipient = SpendingKey::random();
-        PaymentAddress second_addr = second_recipient.address();
-
-        std::array<JSOutput, 2> outputs = {
-            JSOutput(second_addr, 9),
-            JSOutput() // dummy output
-        };
-
-        std::array<Note, 2> output_notes;
-        gettimeofday(&start, NULL);
-        // Perform the proof
-        proof = js->prove(
-            inputs,
-            outputs,
-            output_notes,
-            ciphertexts,
-            ephemeralKey,
-            pubKeyHash,
-            randomSeed,
-            macs,
-            nullifiers,
-            commitments,
-            vpub_old,
-            vpub_new,
-            rt
-        );
-        gettimeofday(&end, NULL);
-        std::cout << "generate zero knowledge needs " << (1000000 * (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec)) << " microseconds" << std::endl;
-    }
-
-    // Verify the transaction:
-    if (js->verify(
-        proof,
-        verifier,
-        pubKeyHash,
-        randomSeed,
-        macs,
-        nullifiers,
-        commitments,
-        vpub_old,
-        vpub_new,
-        rt
-    )) {
-        cout << "Congratulations!! SUCCESS" << endl;
-    } else {
-        return false;
-    }
-    gettimeofday(&start, NULL);
-    std::cout << "verify zero knowledge needs " << (1000000 * (start.tv_sec - end.tv_sec) + (start.tv_usec - end.tv_usec)) << " microseconds" << std::endl;
-    */
+    
 }
 /*
 bool test_joinsplit(ZCJoinSplit* js) {
@@ -729,7 +663,7 @@ bool test_multi_asset_transfer(ZCJoinSplit* js, std::map<uint256, MultiAssetAcco
             id2
         );
         gettimeofday(&end, NULL);
-        std::cout << "---------------generate proof needs " << (1000000 * (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec)) << " microseconds" << std::endl;
+        std::cout << "###############generate proof needs " << (1000000 * (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec)) << " microseconds" << std::endl;
         // Verify the transaction:
         if (js->verify(
             proof,
@@ -748,7 +682,7 @@ bool test_multi_asset_transfer(ZCJoinSplit* js, std::map<uint256, MultiAssetAcco
         } else {
             gettimeofday(&start, NULL);
             std::cout << "verify failed......" << std::endl;
-            std::cout << "---------------verify proof needs " << (1000000 * (start.tv_sec - end.tv_sec) + (start.tv_usec - end.tv_usec)) << " microseconds" << std::endl;
+            std::cout << "###############verify proof needs " << (1000000 * (start.tv_sec - end.tv_sec) + (start.tv_usec - end.tv_usec)) << " microseconds" << std::endl;
             return false;
         }
         // 更新账户信息
@@ -882,8 +816,8 @@ int main(int argc, char **argv)
     load_account_from_db(maas, tree);
     ZCJoinSplit* js;
     test_zero_proof(js);
-    //std::cout << "-----------test multi asset joinsplit--------------" << std::endl;
-    //test_multi_asset_joinsplit(js, maas, tree);
+    std::cout << "-----------test multi asset joinsplit--------------" << std::endl;
+    test_multi_asset_joinsplit(js, maas, tree);
     std::cout << "#############test multi asset transfer################" << std::endl;
     test_multi_asset_transfer(js, maas, tree);
     std::cout << "-----------load account from rocksdb again---------" << std::endl;
