@@ -267,6 +267,7 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
         maas[recipient_addr1.a_pk].notes.push_back(std::make_pair(output_notes[0], true));
         
         maas[recipient_addr1.a_pk].note_witnesses[output_notes[0].cm()] = tree.witness();
+        std::cout << "111111111111111111 root " << tree.root().GetHex() << "  and " << maas[recipient_addr1.a_pk].note_witnesses[output_notes[0].cm()].root().GetHex() << std::endl;
         std::cout << "+++++++++++++++++++++_--------------" << std::endl;
         for (auto iter = maas.begin(); iter != maas.end(); ++iter) {
             auto maa = iter->second;
