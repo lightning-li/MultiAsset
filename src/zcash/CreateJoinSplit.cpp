@@ -653,7 +653,7 @@ bool test_joinsplit(ZCJoinSplit* js) {
 // 1. account[1] => account[n/2+1]、account[n/2+2] 发送匿名 MS2coin
 // 2. account[n/2+1] => account[1]、account[2] 发送匿名 MS1coin
 
-void test_multi_asset_transfer(ZCJoinSplit* js, std::map<uint256, MultiAssetAccount>& maas, ZCIncrementalMerkleTree& tree) {
+bool test_multi_asset_transfer(ZCJoinSplit* js, std::map<uint256, MultiAssetAccount>& maas, ZCIncrementalMerkleTree& tree) {
     auto verifier = libzcash::ProofVerifier::Strict();
     int maas_len = maas.size();
     auto maas_begin = maas.begin();
