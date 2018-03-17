@@ -184,7 +184,29 @@ friend class IncrementalMerkleTree<Depth, Hash>;
 public:
     // Required for Unserialize()
     IncrementalWitness() {}
-
+    IncrementalWitness(const IncrementalWitness& inw) {
+        std::cout  << "IncrementalWitness copy constructor.................." << std::endl;
+        tree = inw.tree;
+        filled = inw.filled;
+        if (inw.cursor) {
+            cursor = std::make_shared<IncrementalMerkleTree<Depth, Hash> >(*inw.cursor);
+        } else {
+            cursor = nullptr;
+        }
+        cursor_depth = inw.cursor_depth;
+    }
+    IncrementalWitness& operator=(const IncrementalWitness& inw) {
+        std::cout  << "IncrementalWitness assign constructor.................." << std::endl;
+        tree = inw.tree;
+        filled = inw.filled;
+        if (inw.cursor) {
+            cursor = std::make_shared<IncrementalMerkleTree<Depth, Hash> >(*inw.cursor);
+        } else {
+            cursor = nullptr;
+        }
+        cursor_depth = inw.cursor_depth;
+        return *this;
+    }
     MerklePath path() const {
         return tree.path(partial_path());
     }
