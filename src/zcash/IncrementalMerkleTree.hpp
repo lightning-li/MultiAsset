@@ -184,9 +184,9 @@ friend class IncrementalMerkleTree<Depth, Hash>;
 public:
     // Required for Unserialize()
     IncrementalWitness() {}
-    IncrementalWitness(const IncrementalWitness& inw) {
-        //std::cout  << "IncrementalWitness copy constructor.................." << std::endl;
-        tree = inw.tree;
+    IncrementalWitness(const IncrementalWitness& inw): tree(inw.tree) {
+        // std::cout  << "IncrementalWitness copy constructor.................." << std::endl;
+        // tree = inw.tree;
         filled = inw.filled;
         if (inw.cursor) {
             cursor = std::make_shared<IncrementalMerkleTree<Depth, Hash> >(*inw.cursor);
