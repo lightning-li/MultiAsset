@@ -69,7 +69,26 @@ public:
     //BOOST_STATIC_ASSERT(Depth >= 1);
     static_assert(Depth >= 1, "Depth is not greater than 1");
     IncrementalMerkleTree() { }
+    IncrementalMerkleTree(const IncrementalMerkleTree& inc) {
+        if (inc.left) {
+            left = std::make_shared<Hash>(*inc.left);
+        } else {
+            left = nullptr;
+        }
 
+        if (inc.right) {
+            right = std::make_shared<Hash>(*inc.right);
+        } else {
+            right = nullptr;
+        }
+        for (auto iter = parents.begin(); iter != parents.end(); ++iter) {
+            if (*iter) {
+                parents.push_back(make_shared<Hash>(**iter));
+            } else {
+                parents.push_back(nullptr);
+            }
+        }
+    }
     size_t DynamicMemoryUsage() const {
         return 32 + // left
                32 + // right
