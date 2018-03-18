@@ -216,11 +216,11 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
             rt,
             id1
         )) {
-            std::cout << "verify passed......" << std::endl;
-        } else {
             gettimeofday(&start, NULL);
-            std::cout << "verify failed......" << std::endl;
+            std::cout << "verify passed......" << std::endl;
             std::cout << "---------------verify proof needs " << (1000000 * (start.tv_sec - end.tv_sec) + (start.tv_usec - end.tv_usec)) << " microseconds" << std::endl;
+        } else {
+            std::cout << "verify failed......" << std::endl;
             return false;
         }
         
@@ -348,11 +348,11 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
             rt,
             id2
         )) {
-            std::cout << "verify passed......" << std::endl;
-        } else {
             gettimeofday(&start, NULL);
+            std::cout << "verify passed......" << std::endl;
+            std::cout << "---------------verify proof needs " << (1000000 * (start.tv_sec - end.tv_sec) + (start.tv_usec - end.tv_usec)) << " microseconds" << std::endl;            
+        } else {            
             std::cout << "verify failed......" << std::endl;
-            std::cout << "---------------verify proof needs " << (1000000 * (start.tv_sec - end.tv_sec) + (start.tv_usec - end.tv_usec)) << " microseconds" << std::endl;
             return false;
         }
         
@@ -678,11 +678,11 @@ bool test_multi_asset_transfer(ZCJoinSplit* js, std::map<uint256, MultiAssetAcco
             rt,
             id2
         )) {
-            std::cout << "verify passed......" << std::endl;
-        } else {
             gettimeofday(&start, NULL);
-            std::cout << "verify failed......" << std::endl;
+            std::cout << "verify passed......" << std::endl;
             std::cout << "###############verify proof needs " << (1000000 * (start.tv_sec - end.tv_sec) + (start.tv_usec - end.tv_usec)) << " microseconds" << std::endl;
+        } else {
+            std::cout << "verify failed......" << std::endl;
             return false;
         }
         // 更新账户信息
@@ -781,23 +781,7 @@ void test_zero_proof(ZCJoinSplit* &js) {
                                   pk_path);
     gettimeofday(&end, NULL);
     std::cout << "prepared vk and pk needs " << (1000000 * (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec)) << " microseconds" << std::endl;
-    // construct a proof.
-    /*
-    for (int i = 0; i < 5; i++) {
-        uint256 anchor = ZCIncrementalMerkleTree().root();
-        uint256 pubKeyHash;
-
-        JSDescription jsdesc(*p,
-                             pubKeyHash,
-                             anchor,
-                             {JSInput(), JSInput()},
-                             {JSOutput(), JSOutput()},
-                             0,
-                             0);
-    }
-    */
-    //test_multi_asset_joinsplit(p);
-    //delete js; // not that it matters
+    
 }
 
 int main(int argc, char **argv)
