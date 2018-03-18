@@ -111,7 +111,7 @@ void load_account_from_db(std::map<uint256, MultiAssetAccount>& maas, ZCIncremen
 
     for (it->SeekToFirst(); it->Valid(); it->Next()) {
         // std::cout << it->key().ToString() << ": " << it->value().ToString() << std::endl;
-        if (it->key().ToString() != tree_key) {
+        if (it->key().ToString() != tree_key and it->key().ToString() != nullifiers_key) {
             MultiAssetAccount maa;
             string value = it->value().ToString();
             size_t value_len = value.size();
