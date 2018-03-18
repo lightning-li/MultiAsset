@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <cassert>
 #include <map>
+#include <set>
 #include <sys/stat.h>
 
 #include "rocksdb/db.h" 
@@ -48,7 +49,7 @@ void initial_multi_asset() {
     uint256 id2 = uint256S("0x0000000000000000000000000000000000000000000000000000000000000002");
     uint256 a_pk;
 
-    for (int i = 0; i < 100; ++i) {
+    for (int i = 0; i < 12; ++i) {
         a_sk = random_uint252();
         a_pk = SpendingKey(a_sk).address().a_pk;
         string a_pk_hex = a_pk.GetHex();
@@ -70,7 +71,7 @@ void initial_multi_asset() {
     delete db;
 }
 
-void load_account_from_db(std::map<uint256, MultiAssetAccount>& maas, ZCIncrementalMerkleTree& tree) {
+void load_account_from_db(std::map<uint256, MultiAssetAccount>& maas, ZCIncrementalMerkleTree& tree, std::set<uint256>& nullifiers_set) {
     rocksdb::DB* db;
     rocksdb::Options options;
     rocksdb::Status status = rocksdb::DB::Open(options, "/home/likang/git/MultiAsset/walletDB", &db);
@@ -90,6 +91,22 @@ void load_account_from_db(std::map<uint256, MultiAssetAccount>& maas, ZCIncremen
     } else {
         std::cout << "can not find tree in rocksdb" << std::endl;
     }
+    // load nullifiers set from rocksdb
+    // 使用 "0x0000000000000000000000000000000000000000000000000000000000000001" 作为其 key
+    string nullifiers_key = "0x0000000000000000000000000000000000000000000000000000000000000001";
+    string nullifiers_value;
+    st = db->Get(rocksdb::ReadOptions(), nullifiers_key, &nullifiers_value);
+
+    if (st.ok()) {
+        // unserialise nullifiers_value to nullifiers set
+        std::vector<char> vv(nullifiers_value.c_str(), nullifiers_value.c_str() + nullifiers_value.size());
+        CDataStream ss(vv, SER_NETWORK, PROTOCOL_VERSION);
+        ss >> nullifiers_set;
+        std::cout << "read nullifiers set successfully and the size is " << nullifiers_set.size() << std::endl;
+    } else {
+        std::cout << "can not find nullifiers set in rocksdb" << std::endl;
+    }
+
     rocksdb::Iterator* it = db->NewIterator(rocksdb::ReadOptions());
 
     for (it->SeekToFirst(); it->Valid(); it->Next()) {
@@ -124,7 +141,7 @@ void load_account_from_db(std::map<uint256, MultiAssetAccount>& maas, ZCIncremen
 // 1. 1 => n/2+1、n/2+2; 2 => n/2+1、n/2+2 发送 value 为 random(1, 100) MS1coin。以此类推
 // 2. n/2+1 => 1、2；n/2+2 => 1、2 发送 value 为 random(1, 100) MS2coin. 以此类推
 
-bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAccount>& maas, ZCIncrementalMerkleTree& tree) {
+bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAccount>& maas, ZCIncrementalMerkleTree& tree, std::set<uint256>& nullifiers_set) {
     
     // 创建验证上下文环境
     auto verifier = libzcash::ProofVerifier::Strict();
@@ -142,10 +159,10 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
     for (int i = 0; i < maas_len / 2; ++i) {
         
         MultiAssetAccount sender_account = std::next(maas_begin, i)->second;
-
-        SpendingKey recipient_key1 = SpendingKey(std::next(maas_begin, maas_len / 2 + i / 2)->second.a_sk);
+        int index = i % 2 == 0 ? i : (i - 1);
+        SpendingKey recipient_key1 = SpendingKey(std::next(maas_begin, maas_len / 2 + index)->second.a_sk);
         PaymentAddress recipient_addr1 = recipient_key1.address();
-        SpendingKey recipient_key2 = SpendingKey(std::next(maas_begin, maas_len / 2 + i / 2 + 1)->second.a_sk);
+        SpendingKey recipient_key2 = SpendingKey(std::next(maas_begin, maas_len / 2 + index + 1)->second.a_sk);
         PaymentAddress recipient_addr2 = recipient_key2.address();
 
         // 创建临时公钥，用于与接收方协商出加密传输的对称密钥
@@ -203,6 +220,13 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
         std::cout << "---------------generate proof needs " << (1000000 * (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec)) << " microseconds" << std::endl;
         
         // Verify the transaction:
+        // 1. verify nullifiers validity
+        // 2. TODO: verify rt validity
+        // 3. verify zero-knowledge proof
+        for (int i = 0; i < nullifiers.size(); ++i) {
+            assert(nullifiers_set.find(nullifiers[i]) == nullifiers_set.end());
+        }
+        
         if (js->verify(
             proof,
             verifier,
@@ -236,6 +260,7 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
             }
         }
         
+        // update tree info
         tree.append(commitments[0]);
         maas[recipient_addr1.a_pk].notes.push_back(std::make_pair(output_notes[0], true));
         maas[recipient_addr1.a_pk].note_witnesses[output_notes[0].cm()] = tree.witness();
@@ -244,6 +269,11 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
         maas[recipient_addr2.a_pk].notes.push_back(std::make_pair(output_notes[1], true));
         maas[recipient_addr2.a_pk].note_witnesses[output_notes[1].cm()] = tree.witness();
 
+        // update nullifiers set
+        for (int i = 0; i < nullifiers.size(); ++i) {
+            nullifiers_set.insert(nullifiers[i]);
+        }
+        
         // Recipient should decrypt
         // Now the recipient should spend the money again
         for (int i = 0; i < 2; ++i) {
@@ -275,10 +305,10 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
     for (int i = maas_len / 2; i < maas_len; ++i) {
         
         MultiAssetAccount sender_account = std::next(maas_begin, i)->second;
-
-        SpendingKey recipient_key1 = SpendingKey(std::next(maas_begin, (i-maas_len/2) / 2)->second.a_sk);
+        int index = i % 2 == 0 ? i : (i - 1);
+        SpendingKey recipient_key1 = SpendingKey(std::next(maas_begin, (index-maas_len/2) )->second.a_sk);
         PaymentAddress recipient_addr1 = recipient_key1.address();
-        SpendingKey recipient_key2 = SpendingKey(std::next(maas_begin, (i-maas_len/2) / 2 + 1)->second.a_sk);
+        SpendingKey recipient_key2 = SpendingKey(std::next(maas_begin, (index-maas_len/2) + 1)->second.a_sk);
         PaymentAddress recipient_addr2 = recipient_key2.address();
 
         // 创建临时公钥，用于与接收方协商出加密传输的对称密钥
@@ -335,6 +365,9 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
         std::cout << "---------------generate proof needs " << (1000000 * (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec)) << " microseconds" << std::endl;
         
         // Verify the transaction:
+        for (int i = 0; i < nullifiers.size(); ++i) {
+            assert(nullifiers_set.find(nullifiers[i]) == nullifiers_set.end());
+        }
         if (js->verify(
             proof,
             verifier,
@@ -374,6 +407,11 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
         maas[recipient_addr1.a_pk].note_witnesses[output_notes[0].cm()].append(commitments[1]);
         maas[recipient_addr2.a_pk].notes.push_back(std::make_pair(output_notes[1], true));
         maas[recipient_addr2.a_pk].note_witnesses[output_notes[1].cm()] = tree.witness();
+
+        // update nullifiers set
+        for (int i = 0; i < nullifiers.size(); ++i) {
+            nullifiers_set.insert(nullifiers[i]);
+        }
         // Recipient should decrypt
         // Now the recipient should spend the money again
         for (int i = 0; i < 2; ++i) {
@@ -405,6 +443,12 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
     CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
     ss << tree;
     batch.Put(tree_key, ss.str());
+    
+    // write nullifiers set to rocksdb
+    string nullifiers_key = "0x0000000000000000000000000000000000000000000000000000000000000001";
+    ss.clear();
+    ss << nullifiers_set;
+    batch.Put(nullifiers_key, ss.str());
 
     // write account into rocksdb
     for (auto iter = maas.begin(); iter != maas.end(); ++iter) {
@@ -587,7 +631,7 @@ bool test_joinsplit(ZCJoinSplit* js) {
 // 1. account[1] => account[n/2+1]、account[n/2+2] 发送匿名 MS2coin
 // 2. account[n/2+1] => account[1]、account[2] 发送匿名 MS1coin
 
-bool test_multi_asset_transfer(ZCJoinSplit* js, std::map<uint256, MultiAssetAccount>& maas, ZCIncrementalMerkleTree& tree) {
+bool test_multi_asset_transfer(ZCJoinSplit* js, std::map<uint256, MultiAssetAccount>& maas, ZCIncrementalMerkleTree& tree, std::set<uint256>& nullifiers_set) {
     auto verifier = libzcash::ProofVerifier::Strict();
     int maas_len = maas.size();
     auto maas_begin = maas.begin();
@@ -600,9 +644,10 @@ bool test_multi_asset_transfer(ZCJoinSplit* js, std::map<uint256, MultiAssetAcco
     assert(status.ok());
 
     for (int i = 0; i < maas_len / 2; ++i) {
-        SpendingKey recipient_key1 = SpendingKey(std::next(maas_begin, maas_len / 2 + i / 2)->second.a_sk);
+        int index = i % 2 == 0 ? i : (i - 1);
+        SpendingKey recipient_key1 = SpendingKey(std::next(maas_begin, maas_len / 2 + index)->second.a_sk);
         PaymentAddress recipient_addr1 = recipient_key1.address();
-        SpendingKey recipient_key2 = SpendingKey(std::next(maas_begin, maas_len / 2 + i / 2 + 1)->second.a_sk);
+        SpendingKey recipient_key2 = SpendingKey(std::next(maas_begin, maas_len / 2 + index + 1)->second.a_sk);
         PaymentAddress recipient_addr2 = recipient_key2.address();
 
         // 创建临时公钥，用于与接收方协商出加密传输的对称密钥
@@ -665,6 +710,9 @@ bool test_multi_asset_transfer(ZCJoinSplit* js, std::map<uint256, MultiAssetAcco
         gettimeofday(&end, NULL);
         std::cout << "###############generate proof needs " << (1000000 * (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec)) << " microseconds" << std::endl;
         // Verify the transaction:
+        for (int i = 0; i < nullifiers.size(); ++i) {
+            assert(nullifiers_set.find(nullifiers[i]) == nullifiers_set.end());
+        }
         if (js->verify(
             proof,
             verifier,
@@ -704,6 +752,11 @@ bool test_multi_asset_transfer(ZCJoinSplit* js, std::map<uint256, MultiAssetAcco
         maas[recipient_addr2.a_pk].notes.push_back(std::make_pair(output_notes[1], true));
         maas[recipient_addr2.a_pk].note_witnesses[output_notes[1].cm()] = tree.witness();
 
+        // update nullifiers set
+        for (int i = 0; i < nullifiers.size(); ++i) {
+            nullifiers_set.insert(nullifiers[i]);
+        }
+
         // Now the recipient should spend the money again
         for (int i = 0; i < 2; ++i) {
             auto h_sig = js->h_sig(randomSeed, nullifiers, pubKeyHash);
@@ -727,12 +780,154 @@ bool test_multi_asset_transfer(ZCJoinSplit* js, std::map<uint256, MultiAssetAcco
             }
         }
     }
+    for (int i = maas_len / 2; i < maas_len; ++i) {
+        int index = i % 2 == 0 ? i : (i - 1);
+        SpendingKey recipient_key1 = SpendingKey(std::next(maas_begin, index - maas_len/2)->second.a_sk);
+        PaymentAddress recipient_addr1 = recipient_key1.address();
+        SpendingKey recipient_key2 = SpendingKey(std::next(maas_begin, index - maas_len/2 + 1)->second.a_sk);
+        PaymentAddress recipient_addr2 = recipient_key2.address();
+
+        // 创建临时公钥，用于与接收方协商出加密传输的对称密钥
+        uint256 ephemeralKey;
+        // 创建随机种子, 用于生成 JoinSplit 的签名
+        uint256 randomSeed;
+        // 创建 JoinSplitPubKey，用于生成 JoinSplit 的签名
+        uint256 pubKeyHash = random_uint256();
+
+        // 设置为 0，只花费匿名资产并且只产生匿名资产
+        uint64_t vpub_old = 0;
+        uint64_t vpub_new = 0;
+
+        MultiAssetAccount sender_account = std::next(maas_begin, i)->second;
+        Note asset_old1 = sender_account.notes[0].first;
+        assert(sender_account.notes[0].second);
+        Note asset_old2 = sender_account.notes[1].first;
+        assert(sender_account.notes[1].second);
+
+        std::array<uint256, 2> macs;
+        std::array<uint256, 2> nullifiers;
+        std::array<uint256, 2> commitments;
+        uint256 rt = tree.root();
+        std::array<ZCNoteEncryption::Ciphertext, 2> ciphertexts;
+        ZCProof proof;
+        struct timeval start, end;
+
+        JSInput js_input1(sender_account.note_witnesses[asset_old1.cm()], asset_old1, SpendingKey(sender_account.a_sk));
+        JSInput js_input2(sender_account.note_witnesses[asset_old2.cm()], asset_old2, SpendingKey(sender_account.a_sk));
+
+        std::array<JSInput, 2> inputs = {
+            js_input1,
+            js_input2
+        };
+
+        std::array<JSOutput, 2> outputs = {
+            JSOutput(recipient_addr1, asset_old2.value, id1),
+            JSOutput(recipient_addr2, asset_old1.value, id1)
+        };
+
+        std::array<Note, 2> output_notes;
+        gettimeofday(&start, NULL);
+        // Perform the proof
+        proof = js->prove(
+            inputs,
+            outputs,
+            output_notes,
+            ciphertexts,
+            ephemeralKey,
+            pubKeyHash,
+            randomSeed,
+            macs,
+            nullifiers,
+            commitments,
+            vpub_old,
+            vpub_new,
+            rt,
+            id1
+        );
+        gettimeofday(&end, NULL);
+        std::cout << "###############generate proof needs " << (1000000 * (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec)) << " microseconds" << std::endl;
+        // Verify the transaction:
+        for (int i = 0; i < nullifiers.size(); ++i) {
+            assert(nullifiers_set.find(nullifiers[i]) == nullifiers_set.end());
+        }
+        if (js->verify(
+            proof,
+            verifier,
+            pubKeyHash,
+            randomSeed,
+            macs,
+            nullifiers,
+            commitments,
+            vpub_old,
+            vpub_new,
+            rt,
+            id1
+        )) {
+            gettimeofday(&start, NULL);
+            std::cout << "verify passed......" << std::endl;
+            std::cout << "###############verify proof needs " << (1000000 * (start.tv_sec - end.tv_sec) + (start.tv_usec - end.tv_usec)) << " microseconds" << std::endl;
+        } else {
+            std::cout << "verify failed......" << std::endl;
+            return false;
+        }
+        // 更新账户信息
+        for (auto iter = maas.begin(); iter != maas.end(); ++iter) {
+            auto maa = iter->second;
+            for (auto it = maa.notes.begin(); it != maa.notes.end(); ++it) {
+                if (it->second) {
+                    iter->second.note_witnesses[it->first.cm()].append(commitments[0]);
+                    iter->second.note_witnesses[it->first.cm()].append(commitments[1]);
+                }
+            }
+        }
+
+        tree.append(commitments[0]);
+        maas[recipient_addr1.a_pk].notes.push_back(std::make_pair(output_notes[0], true));
+        maas[recipient_addr1.a_pk].note_witnesses[output_notes[0].cm()] = tree.witness();
+        tree.append(commitments[1]);
+        maas[recipient_addr1.a_pk].note_witnesses[output_notes[0].cm()].append(commitments[1]);
+        maas[recipient_addr2.a_pk].notes.push_back(std::make_pair(output_notes[1], true));
+        maas[recipient_addr2.a_pk].note_witnesses[output_notes[1].cm()] = tree.witness();
+
+        // update nullifiers set
+        for (int i = 0; i < nullifiers.size(); ++i) {
+            nullifiers_set.insert(nullifiers[i]);
+        }
+        
+        // Now the recipient should spend the money again
+        for (int i = 0; i < 2; ++i) {
+            auto h_sig = js->h_sig(randomSeed, nullifiers, pubKeyHash);
+            ZCNoteDecryption decryptor(i == 0 ? recipient_key1.viewing_key() : recipient_key2.viewing_key());
+
+            auto note_pt = NotePlaintext::decrypt(
+                decryptor,
+                i == 0 ? ciphertexts[0] : ciphertexts[1],
+                ephemeralKey,
+                h_sig,
+                i
+            );
+
+            auto decrypted_note = note_pt.note(i == 0 ? recipient_addr1 : recipient_addr2);
+
+            if (decrypted_note.value != (i == 0 ? asset_old2.value : asset_old1.value) || decrypted_note.id != id1) {
+                std::cout << "error...." << std::endl;
+                return false;
+            } else {
+                std::cout << "decrypt successfully......" << std::endl;
+            }
+        }
+    }
      // write tree to rocksdb
     rocksdb::WriteBatch batch;
     string tree_key = "0x0000000000000000000000000000000000000000000000000000000000000000";
     CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
     ss << tree;
     batch.Put(tree_key, ss.str());
+    // write nullifiers set to rocksdb
+    string nullifiers_key = "0x0000000000000000000000000000000000000000000000000000000000000001";
+    ss.clear();
+    ss << nullifiers_set;
+    batch.Put(nullifiers_key, ss.str());
 
     // write account into rocksdb
     for (auto iter = maas.begin(); iter != maas.end(); ++iter) {
@@ -796,17 +991,22 @@ int main(int argc, char **argv)
     }
     std::map<uint256, MultiAssetAccount> maas;
     ZCIncrementalMerkleTree tree;
+    std::set<uint256> nullifiers_set;
     std::cout << "-----------load account from rocksdb--------------" << std::endl;
-    load_account_from_db(maas, tree);
+    load_account_from_db(maas, tree, nullifiers_set);
     ZCJoinSplit* js;
     test_zero_proof(js);
     std::cout << "-----------test multi asset joinsplit--------------" << std::endl;
-    test_multi_asset_joinsplit(js, maas, tree);
-    std::cout << "#############test multi asset transfer################" << std::endl;
-    test_multi_asset_transfer(js, maas, tree);
+    test_multi_asset_joinsplit(js, maas, tree, nullifiers_set);
     std::cout << "-----------load account from rocksdb again---------" << std::endl;
     std::map<uint256, MultiAssetAccount> maas1;
     ZCIncrementalMerkleTree tree1;
-    load_account_from_db(maas, tree);
+    std::set<uint256> nullifiers_set1;
+    load_account_from_db(maas1, tree1, nullifiers_set1);
+    std::cout << "#############test multi asset transfer################" << std::endl;
+    test_multi_asset_transfer(js, maas1, tree1, nullifiers_set1);
+    std::cout << "-----------load account from rocksdb again---------" << std::endl;
+    
+    load_account_from_db(maas, tree, nullifiers_set);
     
 }
