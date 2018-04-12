@@ -22,6 +22,8 @@
 #include "common/default_types/ec_pp.hpp"
 #include "common/utils.hpp"
 
+#include <iostream>
+
 #ifndef NO_PROCPS
 #include <proc/readproc.h>
 #endif
@@ -256,6 +258,7 @@ void enter_block(const std::string &msg, const bool indent)
     }
 
 #ifdef MULTICORE
+std::cout << "MULTICORE is defined" << std::endl;
 #pragma omp critical
 #endif
     {
@@ -282,6 +285,8 @@ void leave_block(const std::string &msg, const bool indent)
     }
 
 #ifndef MULTICORE
+    std::cout << "MULTICORE is undefined" << std::endl;
+
     assert(*(--block_names.end()) == msg);
 #endif
     block_names.pop_back();
