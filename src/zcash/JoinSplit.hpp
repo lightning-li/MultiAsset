@@ -22,6 +22,7 @@ public:
     Note note;
     SpendingKey key;
 
+    JSInput() {}
     JSInput(uint256 id);
     JSInput(ZCIncrementalWitness witness,
             Note note,
@@ -39,6 +40,7 @@ public:
     std::array<unsigned char, ZC_MEMO_SIZE> memo = {{0xF6}};  // 0xF6 is invalid UTF8 as per spec, rest of array is 0x00
     uint256 id;
 
+    JSOutput() {}
     JSOutput(uint256 id);
     JSOutput(PaymentAddress addr, uint64_t value, uint256 id) : addr(addr), value(value), id(id) { }
 
