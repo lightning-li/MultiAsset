@@ -50,7 +50,7 @@ void initial_multi_asset() {
     uint256 id2 = uint256S("0x0000000000000000000000000000000000000000000000000000000000000002");
     uint256 a_pk;
 
-    for (int i = 0; i < 8; ++i) {
+    for (int i = 0; i < 16; ++i) {
         a_sk = random_uint252();
         a_pk = SpendingKey(a_sk).address().a_pk;
         string a_pk_hex = a_pk.GetHex();
@@ -192,7 +192,7 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
     // 创建验证上下文环境
     auto verifier = libzcash::ProofVerifier::Strict();
 
-    const int maas_len = 8;
+    const int maas_len = 16;
     auto maas_begin = maas.begin();
     uint256 id1 = uint256S("0x0000000000000000000000000000000000000000000000000000000000000001");
     uint256 id2 = uint256S("0x0000000000000000000000000000000000000000000000000000000000000002");
