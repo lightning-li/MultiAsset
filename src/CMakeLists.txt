@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 
 project(MultiAsset)
 set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_FLAGS " -O1 -fPIC")
+set(CMAKE_CXX_FLAGS "-fopenmp -O1 -fPIC")
 set(MULTIASSET_SOURCE ${CMAKE_CURRENT_SOURCE_DIR})
 
 include_directories(${MULTIASSET_SOURCE}
