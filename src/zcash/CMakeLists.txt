@@ -4,9 +4,9 @@ set(CMAKE_CXX_STANDARD 11)
 
 aux_source_directory(${MULTIASSET_SOURCE}/zcash APP_SRC)
 
-#list(REMOVE_ITEM APP_SRC ${MULTIASSET_SOURCE}/zcash/GenerateParams.cpp)
-#list(REMOVE_ITEM APP_SRC ${MULTIASSET_SOURCE}/zcash/CreateJoinSplit.cpp)
-list(REMOVE_ITEM APP_SRC ${MULTIASSET_SOURCE}/zcash/TestJoinSplit.cpp)
+list(REMOVE_ITEM APP_SRC ${MULTIASSET_SOURCE}/zcash/GenerateParams.cpp)
+list(REMOVE_ITEM APP_SRC ${MULTIASSET_SOURCE}/zcash/CreateJoinSplit.cpp)
+#list(REMOVE_ITEM APP_SRC ${MULTIASSET_SOURCE}/zcash/TestJoinSplit.cpp)
 
 # aux_source_directory(${MULTIASSET_SOURCE}/zcash/circuit APP_SRC)
 
