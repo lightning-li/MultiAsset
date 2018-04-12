@@ -175,6 +175,7 @@ bool test_prove(
         rt,
         id
     );
+    return true;
 }
 
 // 测试多匿名资产生成
