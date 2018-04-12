@@ -187,7 +187,7 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
     // 创建验证上下文环境
     auto verifier = libzcash::ProofVerifier::Strict();
 
-    const int maas_len = maas.size();
+    const int maas_len = 4;
     auto maas_begin = maas.begin();
     uint256 id1 = uint256S("0x0000000000000000000000000000000000000000000000000000000000000001");
     uint256 id2 = uint256S("0x0000000000000000000000000000000000000000000000000000000000000002");
