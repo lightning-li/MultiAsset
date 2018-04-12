@@ -267,7 +267,9 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
                             vpub_old[i],
                             vpub_new[i],
                             ref(rt),
-                            ref(id1)));
+                            ref(id1),
+                            true,
+                            nullptr));
     }
 
 
