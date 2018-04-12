@@ -159,6 +159,8 @@ bool test_prove(
         // So use pointer for simplicity.
         uint256 *out_esk = nullptr)    
 {
+    struct timeval start, end;
+    gettimeofday(&start, NULL);
     js->prove(
         inputs,
         outputs,
@@ -175,6 +177,8 @@ bool test_prove(
         rt,
         id
     );
+    gettimeofday(&end, NULL);
+    std::cout << "the thread " << this_thread::get_id() << " generate proof needs " << (1000000 * (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec)) << " microseconds" << std::endl;
     return true;
 }
 
