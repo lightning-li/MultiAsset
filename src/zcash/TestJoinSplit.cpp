@@ -222,7 +222,7 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
     struct timeval start, end;
     gettimeofday(&start, NULL);
 
-    for (int i = 0; i < maas_len / 2; ++i) {
+    for (int i = 0; i < 1 && i < maas_len / 2; ++i) {
         
         MultiAssetAccount sender_account = std::next(maas_begin, i)->second;
         int index = i % 2 == 0 ? i : (i - 1);
