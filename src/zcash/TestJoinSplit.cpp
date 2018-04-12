@@ -202,7 +202,7 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
     // 声明变量
     std::array<std::array<JSInput, 2>, maas_len / 2> inputs;
     std::array<std::array<JSOutput, 2>, maas_len / 2> outputs;
-    std::array<std::array<Note, 2>, maas_len / 2> output_notes;
+    std::array<std::array<Note, 2>, maas_len / 2> out_notes;
     std::array<std::array<ZCNoteEncryption::Ciphertext, 2>, maas_len / 2> ciphertexts;
     // 创建临时公钥，用于与接收方协商出加密传输的对称密钥
     std::array<uint256, maas_len / 2> ephemeralKey;
@@ -236,8 +236,8 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
         uint64_t v1 = GetRand(sender_account.asset[id1]);
         uint64_t v2 = GetRand(sender_account.asset[id1] - v1);
         vpub_old[i] = v1 + v2;
-        assert(sender_account.asset[id1] >= vpub_old);
-        std::next(maas_begin, i)->second.asset[id1] -= vpub_old;
+        assert(sender_account.asset[id1] >= vpub_old[i]);
+        std::next(maas_begin, i)->second.asset[id1] -= vpub_old[i];
 
         vpub_new[i] = 0;
         
@@ -1084,6 +1084,8 @@ int main(int argc, char **argv)
     test_zero_proof(js);
     std::cout << "-----------test multi asset joinsplit--------------" << std::endl;
     test_multi_asset_joinsplit(js, maas, tree, nullifiers_set);
+
+    /*
     std::cout << "-----------load account from rocksdb again---------" << std::endl;
     std::map<uint256, MultiAssetAccount> maas1;
     ZCIncrementalMerkleTree tree1;
@@ -1094,5 +1096,6 @@ int main(int argc, char **argv)
     std::cout << "-----------load account from rocksdb again---------" << std::endl;
     
     load_account_from_db(maas, tree, nullifiers_set);
+    */
     
 }
