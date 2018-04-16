@@ -49,7 +49,7 @@ void initial_multi_asset() {
     uint256 id2 = uint256S("0x0000000000000000000000000000000000000000000000000000000000000002");
     uint256 a_pk;
 
-    for (int i = 0; i < 4; ++i) {
+    for (int i = 0; i < 100; ++i) {
         a_sk = random_uint252();
         a_pk = SpendingKey(a_sk).address().a_pk;
         string a_pk_hex = a_pk.GetHex();
@@ -238,7 +238,7 @@ bool test_multi_asset_joinsplit(ZCJoinSplit* js, std::map<uint256, MultiAssetAcc
             vpub_old,
             vpub_new,
             rt,
-            id2
+            id1
         )) {
             gettimeofday(&start, NULL);
             std::cout << "verify passed......" << std::endl;
